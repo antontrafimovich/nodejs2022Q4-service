@@ -1,33 +1,28 @@
 import { Injectable } from '@nestjs/common';
 
 import { DB } from '../db/db.model';
-
-export type FavoriteRecord = {
-  id: string;
-  type: 'artist' | 'album' | 'track';
-  entityId: string;
-};
+import { Favorite } from '../model';
 
 @Injectable()
 export class FavoritesRepository {
   private _segment = 'favorites';
 
-  constructor(private _db: DB<FavoriteRecord>) {}
+  constructor(private _db: DB<Favorite>) {}
 
-  getAll(): Promise<FavoriteRecord[]> {
+  getAll(): Promise<Favorite[]> {
     return this._db.getMany({
       segment: this._segment,
     });
   }
 
-  create(record: Omit<FavoriteRecord, 'id'>): Promise<FavoriteRecord> {
+  create(record: Omit<Favorite, 'id'>): Promise<Favorite> {
     return this._db.create({
       segment: this._segment,
       payload: record,
     });
   }
 
-  delete(record: Omit<FavoriteRecord, 'id'>): Promise<void> {
+  delete(record: Omit<Favorite, 'id'>): Promise<void> {
     return this._db.delete({
       segment: this._segment,
       fn: (favorite) => {
