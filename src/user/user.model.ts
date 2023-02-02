@@ -1,9 +1,4 @@
-import { User } from '../model';
-
-export type CreateUserDTO = Omit<
-  User,
-  'id' | 'version' | 'createdAt' | 'updatedAt'
->;
+export type CreateUserDTO = { login: string; password: string };
 
 export type UpdatePasswordDTO = {
   oldPassword: string;
