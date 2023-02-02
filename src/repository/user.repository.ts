@@ -15,13 +15,17 @@ export class UserRepository {
     });
   }
 
-  getById(id: string): Promise<User> {
-    return this._db.getOne({
-      segment: this._segment,
-      fn: (user) => {
-        return user.id === id;
-      },
-    });
+  async getById(id: string): Promise<User> {
+    try {
+      return await this._db.getOne({
+        segment: this._segment,
+        fn: (user) => {
+          return user.id === id;
+        },
+      });
+    } catch (err) {
+      this.throwNotFoundError(id);
+    }
   }
 
   create(user: Omit<User, 'id'>): Promise<User> {
@@ -31,22 +35,34 @@ export class UserRepository {
     });
   }
 
-  update(id: string, user: Partial<Omit<User, 'id'>>): Promise<User> {
-    return this._db.update({
-      segment: this._segment,
-      fn: (user) => {
-        return user.id === id;
-      },
-      payload: user,
-    });
+  async update(id: string, user: Partial<Omit<User, 'id'>>): Promise<User> {
+    try {
+      return await this._db.update({
+        segment: this._segment,
+        fn: (user) => {
+          return user.id === id;
+        },
+        payload: user,
+      });
+    } catch (err) {
+      this.throwNotFoundError(id);
+    }
   }
 
-  delete(id: string): Promise<void> {
-    return this._db.delete({
-      segment: this._segment,
-      fn: (user) => {
-        return user.id === id;
-      },
-    });
+  async delete(id: string): Promise<void> {
+    try {
+      return await this._db.delete({
+        segment: this._segment,
+        fn: (user) => {
+          return user.id === id;
+        },
+      });
+    } catch (err) {
+      this.throwNotFoundError(id);
+    }
+  }
+
+  private throwNotFoundError(id: string) {
+    throw new Error(`User with id ${id} doesn't exist`);
   }
 }
