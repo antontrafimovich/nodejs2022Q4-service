@@ -3,8 +3,9 @@ import { Injectable } from '@nestjs/common';
 import { DB } from '../db/db.model';
 
 export type FavoriteRecord = {
-  type: 'artist' | 'album' | 'track';
   id: string;
+  type: 'artist' | 'album' | 'track';
+  entityId: string;
 };
 
 @Injectable()
@@ -19,18 +20,20 @@ export class FavoritesRepository {
     });
   }
 
-  create(record: FavoriteRecord): Promise<FavoriteRecord> {
+  create(record: Omit<FavoriteRecord, 'id'>): Promise<FavoriteRecord> {
     return this._db.create({
       segment: this._segment,
       payload: record,
     });
   }
 
-  delete(id: string): Promise<void> {
+  delete(record: Omit<FavoriteRecord, 'id'>): Promise<void> {
     return this._db.delete({
       segment: this._segment,
-      fn: (favorites) => {
-        return favorites.id === id;
+      fn: (favorite) => {
+        return (
+          favorite.entityId === record.entityId && favorite.type === record.type
+        );
       },
     });
   }
