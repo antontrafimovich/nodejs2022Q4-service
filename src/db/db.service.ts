@@ -44,7 +44,7 @@ export class InMemoryDatabase<TEntity extends DBRecord> extends DB<TEntity> {
     fn: (entity: TEntity) => boolean;
   }): Promise<TEntity[]> {
     if (!this._db[segment]) {
-      return throwNotFoundError();
+      return [];
     }
 
     if (!fn) {
