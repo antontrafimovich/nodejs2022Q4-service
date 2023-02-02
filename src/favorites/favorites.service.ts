@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { AlbumRepository } from 'src/repository/album.repository';
-import { ArtistRepository } from 'src/repository/artist.repository';
-import { FavoritesRepository } from 'src/repository/favorites.repository';
-import { TrackRepository } from 'src/repository/track.repository';
 
-import { FullfieldFavorites } from './favorites.model';
+import { AlbumRepository } from '../repository/album.repository';
+import { ArtistRepository } from '../repository/artist.repository';
+import { FavoritesRepository } from '../repository/favorites.repository';
+import { TrackRepository } from '../repository/track.repository';
+import { FullfilledFavorites } from './favorites.model';
 
 @Injectable()
 export class FavoritesService {
@@ -15,7 +15,7 @@ export class FavoritesService {
     private _trackRepo: TrackRepository,
   ) {}
 
-  async getAll(): Promise<FullfieldFavorites> {
+  async getAll(): Promise<FullfilledFavorites> {
     const favorites = await this._favoritesRepo.getAll();
 
     const favoritesMap = favorites.reduce((result, next) => {

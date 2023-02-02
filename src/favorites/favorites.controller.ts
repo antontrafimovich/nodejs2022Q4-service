@@ -1,6 +1,6 @@
 import { Controller, Delete, Get, Param, Post } from '@nestjs/common';
 
-import { FullfieldFavorites } from './favorites.model';
+import { FullfilledFavorites } from './favorites.model';
 import { FavoritesService } from './favorites.service';
 
 @Controller('favs')
@@ -8,7 +8,7 @@ export class FavoritesController {
   constructor(private _favoriteService: FavoritesService) {}
 
   @Get()
-  getAll(): Promise<FullfieldFavorites> {
+  getAll(): Promise<FullfilledFavorites> {
     return this._favoriteService.getAll();
   }
 

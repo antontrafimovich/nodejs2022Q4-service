@@ -1,6 +1,6 @@
 import { Album, Artist, Track } from '../model';
 
-export type FullfieldFavorites = {
+export type FullfilledFavorites = {
   albums: Album[];
   tracks: Track[];
   artists: Artist[];
