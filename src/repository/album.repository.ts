@@ -24,6 +24,13 @@ export class AlbumRepository {
     });
   }
 
+  getByIds(ids: string[]): Promise<Album[]> {
+    return this._db.getMany({
+      segment: this._segment,
+      fn: (album) => ids.includes(album.id),
+    });
+  }
+
   create(album: Omit<Album, 'id'>): Promise<Album> {
     return this._db.create({
       segment: this._segment,

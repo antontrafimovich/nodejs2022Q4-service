@@ -24,6 +24,13 @@ export class TrackRepository {
     });
   }
 
+  getByIds(ids: string[]): Promise<Track[]> {
+    return this._db.getMany({
+      segment: this._segment,
+      fn: (track) => ids.includes(track.id),
+    });
+  }
+
   create(track: Omit<Track, 'id'>): Promise<Track> {
     return this._db.create({
       segment: this._segment,

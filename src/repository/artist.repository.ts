@@ -24,6 +24,13 @@ export class ArtistRepository {
     });
   }
 
+  getByIds(ids: string[]): Promise<Artist[]> {
+    return this._db.getMany({
+      segment: this._segment,
+      fn: (artist) => ids.includes(artist.id),
+    });
+  }
+
   create(artist: Omit<Artist, 'id'>): Promise<Artist> {
     return this._db.create({
       segment: this._segment,
