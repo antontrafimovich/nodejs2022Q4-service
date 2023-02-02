@@ -2,29 +2,46 @@ import { Injectable } from '@nestjs/common';
 
 import { User } from '../model';
 import { UserRepository } from '../repository/user.repository';
-import { CreateUserDTO } from './user.model';
 
 @Injectable()
 export class UserService {
   constructor(private _userRepo: UserRepository) {}
 
-  getAll(): Promise<User[]> {
-    return this._userRepo.getAll();
-  }
-
-  async getById(id: string): Promise<User> {
+  async getAll(): Promise<Omit<User, 'password'>[]> {
     try {
-      return this._userRepo.getById(id);
+      const result = await this._userRepo.getAll();
+
+      return result.map((user) => {
+        return {
+          ...user,
+          password: undefined,
+        };
+      });
     } catch (err) {
-      throw new Error(`User with id ${id} doesn't exist`);
+      throw err;
     }
   }
 
-  create(createUserDTO: CreateUserDTO): Promise<User> {
+  async getById(id: string): Promise<Omit<User, 'password'>> {
+    try {
+      const user = await this._userRepo.getById(id);
+      return {
+        id,
+        login: user.login,
+        version: user.version,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  create({ login, password }: Pick<User, 'login' | 'password'>): Promise<User> {
     const createdAt = new Date().getTime();
     return this._userRepo.create({
-      login: createUserDTO.login,
-      password: createUserDTO.password,
+      login,
+      password,
       createdAt,
       updatedAt: createdAt,
       version: 1,
@@ -35,9 +52,9 @@ export class UserService {
     let user: User;
 
     try {
-      user = await this.getById(userId);
+      user = await this._userRepo.getById(userId);
     } catch (err) {
-      throw new Error(`User with id ${userId} doesn't exist`);
+      throw err;
     }
 
     return this._userRepo.update(userId, {
@@ -49,10 +66,6 @@ export class UserService {
   }
 
   async delete(userId: string): Promise<void> {
-    try {
-      await this._userRepo.delete(userId);
-    } catch (err) {
-      throw new Error(`User with id ${userId} doesn't exist`);
-    }
+    return this._userRepo.delete(userId);
   }
 }
