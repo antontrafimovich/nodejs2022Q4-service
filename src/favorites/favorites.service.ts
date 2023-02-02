@@ -24,8 +24,8 @@ export class FavoritesService {
           ...result,
           artists:
             result.artists === undefined
-              ? [next.id]
-              : [...result.artists, next.id],
+              ? [next.entityId]
+              : [...result.artists, next.entityId],
         };
       }
 
@@ -34,8 +34,8 @@ export class FavoritesService {
           ...result,
           albums:
             result.albums === undefined
-              ? [next.id]
-              : [...result.albums, next.id],
+              ? [next.entityId]
+              : [...result.albums, next.entityId],
         };
       }
 
@@ -44,8 +44,8 @@ export class FavoritesService {
           ...result,
           tracks:
             result.tracks === undefined
-              ? [next.id]
-              : [...result.tracks, next.id],
+              ? [next.entityId]
+              : [...result.tracks, next.entityId],
         };
       }
     }, {} as Record<'artists' | 'albums' | 'tracks', string[]>);
@@ -59,5 +59,47 @@ export class FavoritesService {
       albums,
       tracks,
     };
+  }
+
+  async addTrackToFavorites(trackId: string): Promise<void> {
+    try {
+      await this._trackRepo.getById(trackId);
+    } catch (err) {
+      throw err;
+    }
+
+    this._favoritesRepo.create({ type: 'track', entityId: trackId });
+  }
+
+  async deleteTrackFromFavorites(trackId: string): Promise<void> {
+    await this._favoritesRepo.delete({ type: 'track', entityId: trackId });
+  }
+
+  async addAlbumToFavorites(albumId: string): Promise<void> {
+    try {
+      await this._albumRepo.getById(albumId);
+    } catch (err) {
+      throw err;
+    }
+
+    this._favoritesRepo.create({ type: 'album', entityId: albumId });
+  }
+
+  async deleteAlbumFromFavorites(albumId: string): Promise<void> {
+    await this._favoritesRepo.delete({ type: 'album', entityId: albumId });
+  }
+
+  async addArtistToFavorites(artistId: string): Promise<void> {
+    try {
+      await this._artistRepo.getById(artistId);
+    } catch (err) {
+      throw err;
+    }
+
+    this._favoritesRepo.create({ type: 'artist', entityId: artistId });
+  }
+
+  async deleteArtistFromFavorites(artistId: string): Promise<void> {
+    await this._favoritesRepo.delete({ type: 'artist', entityId: artistId });
   }
 }
