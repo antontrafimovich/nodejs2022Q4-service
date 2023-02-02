@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ArtistRepository } from 'src/repository/Artist.repository';
+import { ArtistRepository } from '../repository/artist.repository';
 
 import { Artist } from '../model';
 
