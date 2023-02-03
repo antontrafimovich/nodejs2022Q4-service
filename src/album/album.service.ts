@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { AlbumRepository } from 'src/repository/album.repository';
 
 import { Album } from '../model';
@@ -13,9 +18,9 @@ export class AlbumService {
 
   async getById(id: string): Promise<Album> {
     try {
-      return this._albumRepo.getById(id);
-    } catch (err) {
-      this.throwAlbumNotFoundError(id);
+      return await this._albumRepo.getById(id);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -23,23 +28,22 @@ export class AlbumService {
     return this._albumRepo.create(album);
   }
 
-  async update(albumId: string, album: Omit<Album, 'id'>): Promise<Album> {
+  async update(
+    albumId: string,
+    album: Partial<Omit<Album, 'id'>>,
+  ): Promise<Album> {
     try {
       return await this._albumRepo.update(albumId, album);
-    } catch (err) {
-      this.throwAlbumNotFoundError(albumId);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
   }
 
   async delete(albumId: string): Promise<void> {
     try {
-      await this._albumRepo.delete(albumId);
-    } catch (err) {
-      this.throwAlbumNotFoundError(albumId);
+      return await this._albumRepo.delete(albumId);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
-  }
-
-  private throwAlbumNotFoundError(id: string) {
-    throw new Error(`Album with id ${id} doesn't exist`);
   }
 }
