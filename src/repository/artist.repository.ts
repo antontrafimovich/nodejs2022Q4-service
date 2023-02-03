@@ -15,13 +15,17 @@ export class ArtistRepository {
     });
   }
 
-  getById(id: string): Promise<Artist> {
-    return this._db.getOne({
-      segment: this._segment,
-      fn: (artist) => {
-        return artist.id === id;
-      },
-    });
+  async getById(id: string): Promise<Artist> {
+    try {
+      return await this._db.getOne({
+        segment: this._segment,
+        fn: (artist) => {
+          return artist.id === id;
+        },
+      });
+    } catch (err) {
+      this.throwNotFoundError(id);
+    }
   }
 
   getByIds(ids: string[]): Promise<Artist[]> {
@@ -38,22 +42,37 @@ export class ArtistRepository {
     });
   }
 
-  update(id: string, artist: Partial<Omit<Artist, 'id'>>): Promise<Artist> {
-    return this._db.update({
-      segment: this._segment,
-      fn: (artist) => {
-        return artist.id === id;
-      },
-      payload: artist,
-    });
+  async update(
+    id: string,
+    artist: Partial<Omit<Artist, 'id'>>,
+  ): Promise<Artist> {
+    try {
+      return await this._db.update({
+        segment: this._segment,
+        fn: (artist) => {
+          return artist.id === id;
+        },
+        payload: artist,
+      });
+    } catch (err) {
+      this.throwNotFoundError(id);
+    }
   }
 
-  delete(id: string): Promise<void> {
-    return this._db.delete({
-      segment: this._segment,
-      fn: (artist) => {
-        return artist.id === id;
-      },
-    });
+  async delete(id: string): Promise<void> {
+    try {
+      return await this._db.delete({
+        segment: this._segment,
+        fn: (artist) => {
+          return artist.id === id;
+        },
+      });
+    } catch (err) {
+      this.throwNotFoundError(id);
+    }
+  }
+
+  private throwNotFoundError(id: string) {
+    throw new Error(`Artist with id ${id} doesn't exist`);
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ArtistRepository } from '../repository/artist.repository';
 
 import { Artist } from '../model';
@@ -13,9 +13,9 @@ export class ArtistService {
 
   async getById(id: string): Promise<Artist> {
     try {
-      return this._artistRepo.getById(id);
-    } catch (err) {
-      this.throwArtistNotFoundError(id);
+      return await this._artistRepo.getById(id);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -23,23 +23,22 @@ export class ArtistService {
     return this._artistRepo.create(artist);
   }
 
-  async update(artistId: string, artist: Omit<Artist, 'id'>): Promise<Artist> {
+  async update(
+    artistId: string,
+    artist: Partial<Omit<Artist, 'id'>>,
+  ): Promise<Artist> {
     try {
       return await this._artistRepo.update(artistId, artist);
-    } catch (err) {
-      this.throwArtistNotFoundError(artistId);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
   }
 
   async delete(artistId: string): Promise<void> {
     try {
       await this._artistRepo.delete(artistId);
-    } catch (err) {
-      this.throwArtistNotFoundError(artistId);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
-  }
-
-  private throwArtistNotFoundError(id: string) {
-    throw new Error(`Artist with id ${id} doesn't exist`);
   }
 }

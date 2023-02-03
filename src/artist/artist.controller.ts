@@ -4,13 +4,15 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Post,
   Put,
 } from '@nestjs/common';
+import { HttpCode } from '@nestjs/common/decorators';
 
 import { Artist } from '../model';
-import { CreateArtistDTO, UpdateArtistDTO } from './artist.model';
 import { ArtistService } from './artist.service';
+import { CreateArtistDTO, UpdateArtistDTO } from './dto';
 
 @Controller('artist')
 export class ArtistController {
@@ -22,7 +24,7 @@ export class ArtistController {
   }
 
   @Get(':id')
-  getById(@Param('id') id: string): Promise<Artist> {
+  getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Artist> {
     console.log(id);
     return this._artistService.getById(id);
   }
@@ -35,14 +37,15 @@ export class ArtistController {
 
   @Put(':id')
   updatePassword(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateArtistDTO: UpdateArtistDTO,
   ): Promise<Artist> {
     return this._artistService.update(id, updateArtistDTO);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string): Promise<void> {
+  @HttpCode(204)
+  delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
     return this._artistService.delete(id);
   }
 }
