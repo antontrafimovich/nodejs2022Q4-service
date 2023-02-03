@@ -37,15 +37,27 @@ export class UserService {
     }
   }
 
-  create({ login, password }: Pick<User, 'login' | 'password'>): Promise<User> {
+  async create({
+    login,
+    password,
+  }: Pick<User, 'login' | 'password'>): Promise<Omit<User, 'password'>> {
     const createdAt = new Date().getTime();
-    return this._userRepo.create({
+
+    const user = await this._userRepo.create({
       login,
       password,
       createdAt,
       updatedAt: createdAt,
       version: 1,
     });
+
+    return {
+      id: user.id,
+      login: user.login,
+      version: user.version,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 
   async updatePassword(userId: string, password: string): Promise<User> {

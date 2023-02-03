@@ -36,7 +36,9 @@ export class UserController {
   }
 
   @Post()
-  create(@Body() createUserDTO: CreateUserDTO): Promise<User> {
+  create(
+    @Body() createUserDTO: CreateUserDTO,
+  ): Promise<Omit<User, 'password'>> {
     return this._userService.create(createUserDTO);
   }
 
