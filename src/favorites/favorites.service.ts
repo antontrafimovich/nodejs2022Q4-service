@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 import { AlbumRepository } from '../repository/album.repository';
 import { ArtistRepository } from '../repository/artist.repository';
@@ -64,42 +64,90 @@ export class FavoritesService {
   async addTrackToFavorites(trackId: string): Promise<void> {
     try {
       await this._trackRepo.getById(trackId);
-    } catch (err) {
-      throw err;
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    try {
+      await this._favoritesRepo.getByRecord({
+        type: 'track',
+        entityId: trackId,
+      });
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.CONFLICT);
     }
 
     this._favoritesRepo.create({ type: 'track', entityId: trackId });
   }
 
   async deleteTrackFromFavorites(trackId: string): Promise<void> {
-    await this._favoritesRepo.delete({ type: 'track', entityId: trackId });
+    try {
+      return await this._favoritesRepo.delete({
+        type: 'track',
+        entityId: trackId,
+      });
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    }
   }
 
   async addAlbumToFavorites(albumId: string): Promise<void> {
     try {
       await this._albumRepo.getById(albumId);
-    } catch (err) {
-      throw err;
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    try {
+      await this._favoritesRepo.getByRecord({
+        type: 'album',
+        entityId: albumId,
+      });
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.CONFLICT);
     }
 
     this._favoritesRepo.create({ type: 'album', entityId: albumId });
   }
 
   async deleteAlbumFromFavorites(albumId: string): Promise<void> {
-    await this._favoritesRepo.delete({ type: 'album', entityId: albumId });
+    try {
+      return await this._favoritesRepo.delete({
+        type: 'album',
+        entityId: albumId,
+      });
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    }
   }
 
   async addArtistToFavorites(artistId: string): Promise<void> {
     try {
       await this._artistRepo.getById(artistId);
-    } catch (err) {
-      throw err;
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    try {
+      await this._favoritesRepo.getByRecord({
+        type: 'artist',
+        entityId: artistId,
+      });
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.CONFLICT);
     }
 
     this._favoritesRepo.create({ type: 'artist', entityId: artistId });
   }
 
   async deleteArtistFromFavorites(artistId: string): Promise<void> {
-    await this._favoritesRepo.delete({ type: 'artist', entityId: artistId });
+    try {
+      return await this._favoritesRepo.delete({
+        type: 'artist',
+        entityId: artistId,
+      });
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    }
   }
 }

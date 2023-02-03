@@ -1,4 +1,11 @@
-import { Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+} from '@nestjs/common';
 
 import { FullfilledFavorites } from './favorites.model';
 import { FavoritesService } from './favorites.service';
@@ -13,74 +20,68 @@ export class FavoritesController {
   }
 
   @Post('track/:id')
-  async addTrackToFavorites(@Param('id') trackId: string): Promise<string> {
+  async addTrackToFavorites(
+    @Param('id', new ParseUUIDPipe()) trackId: string,
+  ): Promise<{ message: string }> {
     try {
       await this._favoriteService.addTrackToFavorites(trackId);
+
+      return {
+        message: `Track ${trackId} has been successfully added to favorites`,
+      };
     } catch (err) {
       throw err;
     }
-
-    return 'Success';
   }
 
   @Delete('track/:id')
   async deleteTrackFromFavorites(
-    @Param('id') trackId: string,
-  ): Promise<string> {
-    try {
-      await this._favoriteService.deleteTrackFromFavorites(trackId);
-    } catch (err) {
-      throw err;
-    }
-
-    return 'Success';
+    @Param('id', new ParseUUIDPipe()) trackId: string,
+  ): Promise<void> {
+    return this._favoriteService.deleteTrackFromFavorites(trackId);
   }
 
   @Post('album/:id')
-  async addAlbumToFavorites(@Param('id') trackId: string): Promise<string> {
+  async addAlbumToFavorites(
+    @Param('id', new ParseUUIDPipe()) album: string,
+  ): Promise<{ message: string }> {
     try {
-      await this._favoriteService.addTrackToFavorites(trackId);
+      await this._favoriteService.addAlbumToFavorites(album);
+
+      return {
+        message: `Album ${album} has been successfully added to favorites`,
+      };
     } catch (err) {
       throw err;
     }
-
-    return 'Success';
   }
 
   @Delete('album/:id')
   async deleteAlbumFromFavorites(
-    @Param('id') albumId: string,
-  ): Promise<string> {
-    try {
-      await this._favoriteService.deleteAlbumFromFavorites(albumId);
-    } catch (err) {
-      throw err;
-    }
-
-    return 'Success';
+    @Param('id', new ParseUUIDPipe()) albumId: string,
+  ): Promise<void> {
+    return this._favoriteService.deleteAlbumFromFavorites(albumId);
   }
 
   @Post('artist/:id')
-  async addArtistToFavorites(@Param('id') artistId: string): Promise<string> {
+  async addArtistToFavorites(
+    @Param('id', new ParseUUIDPipe()) artistId: string,
+  ): Promise<{ message: string }> {
     try {
       await this._favoriteService.addArtistToFavorites(artistId);
+
+      return {
+        message: `Artist ${artistId} has been successfully added to favorites`,
+      };
     } catch (err) {
       throw err;
     }
-
-    return 'Success';
   }
 
   @Delete('artist/:id')
-  async deleteArtistFromFavorites(
-    @Param('id') artistId: string,
-  ): Promise<string> {
-    try {
-      await this._favoriteService.deleteArtistFromFavorites(artistId);
-    } catch (err) {
-      throw err;
-    }
-
-    return 'Success';
+  deleteArtistFromFavorites(
+    @Param('id', new ParseUUIDPipe()) artistId: string,
+  ): Promise<void> {
+    return this._favoriteService.deleteArtistFromFavorites(artistId);
   }
 }
