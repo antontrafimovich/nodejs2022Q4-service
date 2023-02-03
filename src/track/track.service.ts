@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { TrackRepository } from 'src/repository/track.repository';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 import { Track } from '../model';
+import { TrackRepository } from '../repository/track.repository';
 
 @Injectable()
 export class TrackService {
@@ -14,8 +14,8 @@ export class TrackService {
   async getById(id: string): Promise<Track> {
     try {
       return this._trackRepo.getById(id);
-    } catch (err) {
-      this.throwTrackNotFoundError(id);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -23,23 +23,22 @@ export class TrackService {
     return this._trackRepo.create(track);
   }
 
-  async update(trackId: string, track: Omit<Track, 'id'>): Promise<Track> {
+  async update(
+    trackId: string,
+    track: Partial<Omit<Track, 'id'>>,
+  ): Promise<Track> {
     try {
       return await this._trackRepo.update(trackId, track);
-    } catch (err) {
-      this.throwTrackNotFoundError(trackId);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
   }
 
   async delete(trackId: string): Promise<void> {
     try {
       await this._trackRepo.delete(trackId);
-    } catch (err) {
-      this.throwTrackNotFoundError(trackId);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
-  }
-
-  private throwTrackNotFoundError(id: string) {
-    throw new Error(`Track with id ${id} doesn't exist`);
   }
 }
