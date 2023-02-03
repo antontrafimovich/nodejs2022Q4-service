@@ -3,8 +3,7 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Post,
@@ -12,7 +11,7 @@ import {
 } from '@nestjs/common';
 
 import { User } from '../model';
-import { CreateUserDTO, UpdatePasswordDTO } from './user.model';
+import { CreateUserDTO, UpdatePasswordDTO } from './dto';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -25,14 +24,10 @@ export class UserController {
   }
 
   @Get(':id')
-  async getById(
+  getById(
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<Omit<User, 'password'>> {
-    try {
-      return await this._userService.getById(id);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
-    }
+    return this._userService.getById(id);
   }
 
   @Post()
@@ -44,14 +39,15 @@ export class UserController {
 
   @Put(':id')
   updatePassword(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updatePasswordDTO: UpdatePasswordDTO,
-  ): Promise<User> {
-    return this._userService.updatePassword(id, updatePasswordDTO.newPassword);
+  ): Promise<Omit<User, 'password'>> {
+    return this._userService.updatePassword(id, updatePasswordDTO);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string): Promise<void> {
+  @HttpCode(204)
+  delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
     return this._userService.delete(id);
   }
 }

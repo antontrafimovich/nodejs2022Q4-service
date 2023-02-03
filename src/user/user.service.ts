@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 import { User } from '../model';
 import { UserRepository } from '../repository/user.repository';
+import { UpdatePasswordDTO } from './dto';
 
 @Injectable()
 export class UserService {
@@ -32,8 +33,8 @@ export class UserService {
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       };
-    } catch (err) {
-      throw err;
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -60,24 +61,46 @@ export class UserService {
     };
   }
 
-  async updatePassword(userId: string, password: string): Promise<User> {
+  async updatePassword(
+    userId: string,
+    { oldPassword, newPassword }: UpdatePasswordDTO,
+  ): Promise<Omit<User, 'password'>> {
     let user: User;
 
     try {
       user = await this._userRepo.getById(userId);
-    } catch (err) {
-      throw err;
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
 
-    return this._userRepo.update(userId, {
+    if (oldPassword !== user.password) {
+      throw new HttpException(
+        `Provided old password is wrong`,
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const result = await this._userRepo.update(userId, {
       ...user,
-      password,
+      password: newPassword,
       version: user.version + 1,
       updatedAt: new Date().getTime(),
     });
+
+    return {
+      id: result.id,
+      login: result.login,
+      version: result.version,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+    };
   }
 
   async delete(userId: string): Promise<void> {
-    return this._userRepo.delete(userId);
+    try {
+      return await this._userRepo.delete(userId);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    }
   }
 }
