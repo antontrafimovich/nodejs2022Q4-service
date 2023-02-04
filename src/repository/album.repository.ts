@@ -15,6 +15,13 @@ export class AlbumRepository {
     });
   }
 
+  getMany(fn: (album: Album) => boolean): Promise<Album[]> {
+    return this._db.getMany({
+      segment: this._segment,
+      fn,
+    });
+  }
+
   async getById(id: string): Promise<Album> {
     try {
       return await this._db.getOne({
