@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { FavoritesRepository } from 'src/repository/favorites.repository';
 
 import { Track } from '../model';
+import { FavoritesRepository } from '../repository/favorites.repository';
 import { TrackRepository } from '../repository/track.repository';
 
 @Injectable()
@@ -17,7 +17,7 @@ export class TrackService {
 
   async getById(id: string): Promise<Track> {
     try {
-      return this._trackRepo.getById(id);
+      return await this._trackRepo.getById(id);
     } catch ({ message }) {
       throw new HttpException(message, HttpStatus.NOT_FOUND);
     }

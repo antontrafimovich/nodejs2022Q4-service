@@ -9,10 +9,14 @@ export class FavoritesRepository {
 
   constructor(private _db: DB<Favorite>) {}
 
-  getAll(): Promise<Favorite[]> {
-    return this._db.getMany({
+  async getAll(): Promise<Favorite[]> {
+    const favorites = await this._db.getMany({
       segment: this._segment,
     });
+
+    console.log(favorites);
+
+    return favorites;
   }
 
   async getByRecord(record: Omit<Favorite, 'id'>): Promise<Favorite> {

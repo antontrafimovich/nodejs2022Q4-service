@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { DB } from 'src/db/db.model';
 
+import { DB } from '../db/db.model';
 import { Track } from '../model';
 
 @Injectable()

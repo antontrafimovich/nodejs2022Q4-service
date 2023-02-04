@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { FavoritesRepository } from 'src/repository/favorites.repository';
 
 import { Album, Track } from '../model';
 import { AlbumRepository } from '../repository/album.repository';
+import { FavoritesRepository } from '../repository/favorites.repository';
 import { TrackRepository } from '../repository/track.repository';
 
 @Injectable()

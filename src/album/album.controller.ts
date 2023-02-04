@@ -8,6 +8,7 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import { HttpCode } from '@nestjs/common/decorators';
 
 import { Album } from '../model';
 import { AlbumService } from './album.service';
@@ -43,6 +44,7 @@ export class AlbumController {
   }
 
   @Delete(':id')
+  @HttpCode(204)
   delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
     return this._albumService.delete(id);
   }

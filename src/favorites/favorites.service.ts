@@ -18,41 +18,38 @@ export class FavoritesService {
   async getAll(): Promise<FullfilledFavorites> {
     const favorites = await this._favoritesRepo.getAll();
 
-    const favoritesMap = favorites.reduce((result, next) => {
-      if (next.type === 'artist') {
-        return {
-          ...result,
-          artists:
-            result.artists === undefined
-              ? [next.entityId]
-              : [...result.artists, next.entityId],
-        };
-      }
+    const favoritesMap = favorites.reduce(
+      (result, next) => {
+        if (next.type === 'artist') {
+          return {
+            ...result,
+            artists: [...result.artists, next.entityId],
+          };
+        }
 
-      if (next.type === 'album') {
-        return {
-          ...result,
-          albums:
-            result.albums === undefined
-              ? [next.entityId]
-              : [...result.albums, next.entityId],
-        };
-      }
+        if (next.type === 'album') {
+          return {
+            ...result,
+            albums: [...result.albums, next.entityId],
+          };
+        }
 
-      if (next.type === 'track') {
-        return {
-          ...result,
-          tracks:
-            result.tracks === undefined
-              ? [next.entityId]
-              : [...result.tracks, next.entityId],
-        };
-      }
-    }, {} as Record<'artists' | 'albums' | 'tracks', string[]>);
+        if (next.type === 'track') {
+          return {
+            ...result,
+            tracks: [...result.tracks, next.entityId],
+          };
+        }
+      },
+      { artists: [], albums: [], tracks: [] } as Record<
+        'artists' | 'albums' | 'tracks',
+        string[]
+      >,
+    );
 
     const artists = await this._artistRepo.getByIds(favoritesMap.artists);
-    const albums = await this._albumRepo.getByIds(favoritesMap.artists);
-    const tracks = await this._trackRepo.getByIds(favoritesMap.artists);
+    const albums = await this._albumRepo.getByIds(favoritesMap.albums);
+    const tracks = await this._trackRepo.getByIds(favoritesMap.tracks);
 
     return {
       artists,
@@ -73,9 +70,12 @@ export class FavoritesService {
         type: 'track',
         entityId: trackId,
       });
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.CONFLICT);
-    }
+
+      throw new HttpException(
+        `Track with id ${trackId} has already been added to favorites`,
+        HttpStatus.CONFLICT,
+      );
+    } catch {}
 
     this._favoritesRepo.create({ type: 'track', entityId: trackId });
   }
@@ -103,9 +103,12 @@ export class FavoritesService {
         type: 'album',
         entityId: albumId,
       });
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.CONFLICT);
-    }
+
+      throw new HttpException(
+        `Album with id ${albumId} has already been added to favorites`,
+        HttpStatus.CONFLICT,
+      );
+    } catch {}
 
     this._favoritesRepo.create({ type: 'album', entityId: albumId });
   }
@@ -133,9 +136,12 @@ export class FavoritesService {
         type: 'artist',
         entityId: artistId,
       });
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.CONFLICT);
-    }
+
+      throw new HttpException(
+        `Artist with id ${artistId} has already been added to favorites`,
+        HttpStatus.CONFLICT,
+      );
+    } catch {}
 
     this._favoritesRepo.create({ type: 'artist', entityId: artistId });
   }

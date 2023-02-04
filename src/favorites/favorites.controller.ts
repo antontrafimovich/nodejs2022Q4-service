@@ -6,6 +6,7 @@ import {
   ParseUUIDPipe,
   Post,
 } from '@nestjs/common';
+import { HttpCode } from '@nestjs/common/decorators';
 
 import { FullfilledFavorites } from './favorites.model';
 import { FavoritesService } from './favorites.service';
@@ -35,6 +36,7 @@ export class FavoritesController {
   }
 
   @Delete('track/:id')
+  @HttpCode(204)
   async deleteTrackFromFavorites(
     @Param('id', new ParseUUIDPipe()) trackId: string,
   ): Promise<void> {
@@ -57,6 +59,7 @@ export class FavoritesController {
   }
 
   @Delete('album/:id')
+  @HttpCode(204)
   async deleteAlbumFromFavorites(
     @Param('id', new ParseUUIDPipe()) albumId: string,
   ): Promise<void> {
@@ -79,6 +82,7 @@ export class FavoritesController {
   }
 
   @Delete('artist/:id')
+  @HttpCode(204)
   deleteArtistFromFavorites(
     @Param('id', new ParseUUIDPipe()) artistId: string,
   ): Promise<void> {
