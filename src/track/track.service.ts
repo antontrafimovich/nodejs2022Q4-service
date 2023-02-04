@@ -1,11 +1,15 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { FavoritesRepository } from 'src/repository/favorites.repository';
 
 import { Track } from '../model';
 import { TrackRepository } from '../repository/track.repository';
 
 @Injectable()
 export class TrackService {
-  constructor(private _trackRepo: TrackRepository) {}
+  constructor(
+    private _trackRepo: TrackRepository,
+    private _favoritesRepo: FavoritesRepository,
+  ) {}
 
   getAll(): Promise<Track[]> {
     return this._trackRepo.getAll();
@@ -40,5 +44,9 @@ export class TrackService {
     } catch ({ message }) {
       throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
+
+    try {
+      await this._favoritesRepo.delete({ type: 'track', entityId: trackId });
+    } catch {}
   }
 }

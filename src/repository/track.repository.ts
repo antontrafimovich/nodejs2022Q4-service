@@ -15,6 +15,13 @@ export class TrackRepository {
     });
   }
 
+  getMany(fn: (track: Track) => boolean): Promise<Track[]> {
+    return this._db.getMany({
+      segment: this._segment,
+      fn,
+    });
+  }
+
   async getById(id: string): Promise<Track> {
     try {
       return await this._db.getOne({
