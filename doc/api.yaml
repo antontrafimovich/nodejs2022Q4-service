@@ -5,7 +5,7 @@ info:
   version: 1.0.0
 
 servers:
-  - url: /api
+  - url: http://localhost:4000
 
 components:
   schemas:
@@ -17,10 +17,8 @@ components:
           format: uuid
         login:
           type: string
-          example: 'TestUser'
         password:
           type: string
-          example: 'TestPassword'
         version:
           type: number
           example: 1
@@ -115,7 +113,7 @@ components:
             $ref: '#/components/schemas/Track'
 
 paths:
-  /users:
+  /user:
     get:
       tags:
         - Users
@@ -146,9 +144,11 @@ paths:
               properties:
                 login:
                   type: string
+                  example: TestLogin
                   description: The user's login
                 password:
                   type: string
+                  example: TestPassword
                   description: The user's password
               required:
                 - login
@@ -167,7 +167,7 @@ paths:
                     format: uuid
                   login:
                     type: string
-                    example: TestUser
+                    example: TestLogin
                   version:
                     type: integer
                     example: 2
@@ -179,7 +179,7 @@ paths:
                     example: 1655000000
         400:
           description: Bad request. body does not contain required fields
-  /users/{userId}:
+  /user/{userId}:
     parameters:
       - name: userId
         in: path
@@ -269,7 +269,7 @@ paths:
         404:
           description: User not found
 
-  /tracks:
+  /track:
     get:
       tags:
         - Track
@@ -320,7 +320,7 @@ paths:
                 $ref: '#/components/schemas/Track'
         400:
           description: Bad request. body does not contain required fields
-  /tracks/{id}:
+  /track/{id}:
     parameters:
       - name: id
         in: path
@@ -419,7 +419,7 @@ paths:
         404:
           description: Track was not found.
 
-  /albums:
+  /album:
     get:
       tags:
         - Album
@@ -467,7 +467,7 @@ paths:
                 $ref: '#/components/schemas/Album'
         400:
           description: Bad request. body does not contain required fields
-  /albums/{id}:
+  /album/{id}:
     parameters:
       - name: id
         in: path
@@ -538,7 +538,7 @@ paths:
           description: Bad request. albumId is invalid (not uuid)
         404:
           description: Album was not found.
-  /artists:
+  /artist:
     get:
       tags:
         - Artist
@@ -581,7 +581,7 @@ paths:
                 $ref: '#/components/schemas/Artist'
         400:
           description: Bad request. body does not contain required fields
-  /artists/{id}:
+  /artist/{id}:
     parameters:
       - name: id
         in: path
