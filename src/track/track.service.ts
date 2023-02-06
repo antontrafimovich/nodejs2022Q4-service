@@ -1,4 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { AlbumRepository } from 'src/repository/album.repository';
+import { ArtistRepository } from 'src/repository/artist.repository';
 
 import { Track } from '../model';
 import { FavoritesRepository } from '../repository/favorites.repository';
@@ -8,6 +10,8 @@ import { TrackRepository } from '../repository/track.repository';
 export class TrackService {
   constructor(
     private _trackRepo: TrackRepository,
+    private _albumRepo: AlbumRepository,
+    private _artistRepo: ArtistRepository,
     private _favoritesRepo: FavoritesRepository,
   ) {}
 
@@ -23,8 +27,32 @@ export class TrackService {
     }
   }
 
-  create(track: Omit<Track, 'id'>): Promise<Track> {
-    return this._trackRepo.create(track);
+  async create(track: Omit<Track, 'id'>): Promise<Track> {
+    const { artistId, albumId } = track;
+
+    try {
+      if (artistId !== null) {
+        await this._artistRepo.getById(artistId);
+      }
+    } catch {
+      throw new HttpException(
+        `Can't create track, because artist with id ${artistId} doesn't exist`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    try {
+      if (albumId !== null) {
+        await this._albumRepo.getById(albumId);
+      }
+    } catch {
+      throw new HttpException(
+        `Can't create track, because album with id ${albumId} doesn't exist`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return await this._trackRepo.create(track);
   }
 
   async update(
