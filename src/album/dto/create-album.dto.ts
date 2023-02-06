@@ -3,7 +3,7 @@ import {
   IsNotEmpty,
   IsString,
   IsUUID,
-  IsOptional,
+  ValidateIf,
 } from 'class-validator';
 
 export class CreateAlbumDTO {
@@ -15,7 +15,7 @@ export class CreateAlbumDTO {
   @IsNotEmpty()
   year: number;
 
-  @IsOptional()
   @IsUUID()
+  @ValidateIf((o) => o.artistId !== null)
   artistId: string | null; // refers to Artist
 }

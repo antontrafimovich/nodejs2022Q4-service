@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ArtistRepository } from 'src/repository/artist.repository';
 
 import { Album, Track } from '../model';
 import { AlbumRepository } from '../repository/album.repository';
@@ -10,6 +11,7 @@ export class AlbumService {
   constructor(
     private _albumRepo: AlbumRepository,
     private _trackRepo: TrackRepository,
+    private _artistRepo: ArtistRepository,
     private _favoritesRepo: FavoritesRepository,
   ) {}
 
@@ -25,8 +27,21 @@ export class AlbumService {
     }
   }
 
-  create(album: Omit<Album, 'id'>): Promise<Album> {
-    return this._albumRepo.create(album);
+  async create(album: Omit<Album, 'id'>): Promise<Album> {
+    const { artistId } = album;
+
+    try {
+      if (artistId !== null) {
+        await this._artistRepo.getById(artistId);
+      }
+    } catch {
+      throw new HttpException(
+        `Can't create album, because artist with id ${artistId} doesn't exist`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return await this._albumRepo.create(album);
   }
 
   async update(
