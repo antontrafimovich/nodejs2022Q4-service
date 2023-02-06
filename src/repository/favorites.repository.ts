@@ -14,8 +14,6 @@ export class FavoritesRepository {
       segment: this._segment,
     });
 
-    console.log(favorites);
-
     return favorites;
   }
 

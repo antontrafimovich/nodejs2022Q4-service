@@ -25,13 +25,11 @@ export class ArtistController {
 
   @Get(':id')
   getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Artist> {
-    console.log(id);
     return this._artistService.getById(id);
   }
 
   @Post()
   create(@Body() createArtistDTO: CreateArtistDTO): Promise<Artist> {
-    console.log(createArtistDTO);
     return this._artistService.create(createArtistDTO);
   }
 

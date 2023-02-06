@@ -25,13 +25,11 @@ export class AlbumController {
 
   @Get(':id')
   getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Album> {
-    console.log(id);
     return this._albumService.getById(id);
   }
 
   @Post()
   create(@Body() createAlbumDTO: CreateAlbumDTO): Promise<Album> {
-    console.log(createAlbumDTO);
     return this._albumService.create(createAlbumDTO);
   }
 
