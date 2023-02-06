@@ -676,6 +676,15 @@ paths:
       responses:
         201:
           description: Added succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
         400:
           description: Bad. trackId is invalid (not uuid)
         422:
@@ -708,6 +717,15 @@ paths:
       responses:
         201:
           description: Added succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
         400:
           description: Bad. albumId is invalid (not uuid)
         422:
@@ -740,6 +758,15 @@ paths:
       responses:
         201:
           description: Added succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
         400:
           description: Bad request. artistId is invalid (not uuid)
         422:
