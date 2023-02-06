@@ -11,6 +11,12 @@
 git clone {repository URL}
 ```
 
+## Switching to the branch with implementation
+
+```
+git checkout develop
+```
+
 ## Installing NPM modules
 
 ```
@@ -24,49 +30,27 @@ npm start
 ```
 
 After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
+in your browser OpenAPI documentation by pasting api.yaml file's content to the
+https://editor.swagger.io/ service. Don't forget to change `servers.url` prop content
+if port is different from 4000.
 For more information about OpenAPI/Swagger please visit https://swagger.io/.
+
+## Notes
+
+This app is implemented according to the assignment from https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments/rest-service/assignment.md, but there're a couple of extensions:
+- 409 HTTP Error is being sent on try to add an entity to favorites which is already there.
+- 400 HTTP Error is being sent on try to update track or album with `artistId` or `albumId` values which doesn't exist in db.
 
 ## Testing
 
 After application running open new terminal and enter:
 
-To run all tests without authorization
-
 ```
 npm run test
 ```
 
-To run only one of all test suites
-
-```
-npm run test -- <path to suite>
-```
-
-To run all test with authorization
-
-```
-npm run test:auth
-```
-
-To run only specific test suite with authorization
-
-```
-npm run test:auth -- <path to suite>
-```
-
-### Auto-fix and format
+### To check linting run
 
 ```
 npm run lint
 ```
-
-```
-npm run format
-```
-
-### Debugging in VSCode
-
-Press <kbd>F5</kbd> to debug.
-
-For more information, visit: https://code.visualstudio.com/docs/editor/debugging
