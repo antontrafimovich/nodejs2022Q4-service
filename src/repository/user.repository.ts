@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { DB } from '../db/db.model';
 import { User } from '../model';
+import { NotFoundError } from '../utils';
 
 @Injectable()
 export class UserRepository {
@@ -35,7 +36,7 @@ export class UserRepository {
     });
   }
 
-  async update(id: string, user: Partial<Omit<User, 'id'>>): Promise<User> {
+  async update(id: string, user: Omit<User, 'id'>): Promise<User> {
     try {
       return await this._db.update({
         segment: this._segment,
@@ -63,6 +64,6 @@ export class UserRepository {
   }
 
   private throwNotFoundError(id: string) {
-    throw new Error(`User with id ${id} doesn't exist`);
+    throw new NotFoundError(`User with id ${id} doesn't exist`);
   }
 }

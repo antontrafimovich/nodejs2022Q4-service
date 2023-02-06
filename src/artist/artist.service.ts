@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { Album, Artist, Track } from '../model';
 import { AlbumRepository } from '../repository/album.repository';
@@ -19,34 +19,23 @@ export class ArtistService {
     return this._artistRepo.getAll();
   }
 
-  async getById(id: string): Promise<Artist> {
-    try {
-      return await this._artistRepo.getById(id);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
-    }
+  getById(id: string): Promise<Artist> {
+    return this._artistRepo.getById(id);
   }
 
   create(artist: Omit<Artist, 'id'>): Promise<Artist> {
     return this._artistRepo.create(artist);
   }
 
-  async update(
-    artistId: string,
-    artist: Partial<Omit<Artist, 'id'>>,
-  ): Promise<Artist> {
-    try {
-      return await this._artistRepo.update(artistId, artist);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
-    }
+  update(artistId: string, artist: Omit<Artist, 'id'>): Promise<Artist> {
+    return this._artistRepo.update(artistId, artist);
   }
 
   async delete(artistId: string): Promise<void> {
     try {
       await this._artistRepo.delete(artistId);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      throw err;
     }
 
     try {
@@ -59,18 +48,18 @@ export class ArtistService {
       artistTracks = await this._trackRepo.getMany(
         (track) => track.artistId === artistId,
       );
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      throw err;
     }
 
     try {
       const updateTracksPromises = artistTracks.map((track) =>
-        this._trackRepo.update(track.id, { artistId: null }),
+        this._trackRepo.update(track.id, { ...track, artistId: null }),
       );
 
       await Promise.all(updateTracksPromises);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      throw err;
     }
 
     let artistAlbums: Album[];
@@ -79,18 +68,18 @@ export class ArtistService {
       artistAlbums = await this._albumRepo.getMany(
         (album) => album.artistId === artistId,
       );
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      throw err;
     }
 
     try {
       const updateAlbumsPromises = artistAlbums.map((album) =>
-        this._albumRepo.update(album.id, { artistId: null }),
+        this._albumRepo.update(album.id, { ...album, artistId: null }),
       );
 
       await Promise.all(updateAlbumsPromises);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      throw err;
     }
   }
 }

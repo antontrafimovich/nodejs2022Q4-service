@@ -1,10 +1,11 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { AlbumRepository } from 'src/repository/album.repository';
-import { ArtistRepository } from 'src/repository/artist.repository';
+import { Injectable } from '@nestjs/common';
 
 import { Track } from '../model';
+import { AlbumRepository } from '../repository/album.repository';
+import { ArtistRepository } from '../repository/artist.repository';
 import { FavoritesRepository } from '../repository/favorites.repository';
 import { TrackRepository } from '../repository/track.repository';
+import { BadInputError, NotFoundError } from '../utils';
 
 @Injectable()
 export class TrackService {
@@ -19,12 +20,8 @@ export class TrackService {
     return this._trackRepo.getAll();
   }
 
-  async getById(id: string): Promise<Track> {
-    try {
-      return await this._trackRepo.getById(id);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
-    }
+  getById(id: string): Promise<Track> {
+    return this._trackRepo.getById(id);
   }
 
   async create(track: Omit<Track, 'id'>): Promise<Track> {
@@ -35,9 +32,8 @@ export class TrackService {
         await this._artistRepo.getById(artistId);
       }
     } catch {
-      throw new HttpException(
+      throw new BadInputError(
         `Can't create track, because artist with id ${artistId} doesn't exist`,
-        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -46,31 +42,45 @@ export class TrackService {
         await this._albumRepo.getById(albumId);
       }
     } catch {
-      throw new HttpException(
+      throw new BadInputError(
         `Can't create track, because album with id ${albumId} doesn't exist`,
-        HttpStatus.NOT_FOUND,
       );
     }
 
     return await this._trackRepo.create(track);
   }
 
-  async update(
-    trackId: string,
-    track: Partial<Omit<Track, 'id'>>,
-  ): Promise<Track> {
+  async update(trackId: string, track: Omit<Track, 'id'>): Promise<Track> {
+    const { artistId, albumId } = track;
+
     try {
-      return await this._trackRepo.update(trackId, track);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+      if (artistId !== null) {
+        await this._artistRepo.getById(artistId);
+      }
+    } catch {
+      throw new BadInputError(
+        `Can't create track, because artist with id ${artistId} doesn't exist`,
+      );
     }
+
+    try {
+      if (albumId !== null) {
+        await this._albumRepo.getById(albumId);
+      }
+    } catch {
+      throw new BadInputError(
+        `Can't create track, because album with id ${albumId} doesn't exist`,
+      );
+    }
+
+    return this._trackRepo.update(trackId, track);
   }
 
   async delete(trackId: string): Promise<void> {
     try {
       await this._trackRepo.delete(trackId);
     } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+      throw new NotFoundError(message);
     }
 
     try {

@@ -1,4 +1,5 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { ForbiddenError } from 'src/utils';
 
 import { User } from '../model';
 import { UserRepository } from '../repository/user.repository';
@@ -33,8 +34,8 @@ export class UserService {
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       };
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      throw err;
     }
   }
 
@@ -44,13 +45,19 @@ export class UserService {
   }: Pick<User, 'login' | 'password'>): Promise<Omit<User, 'password'>> {
     const createdAt = new Date().getTime();
 
-    const user = await this._userRepo.create({
-      login,
-      password,
-      createdAt,
-      updatedAt: createdAt,
-      version: 1,
-    });
+    let user: User;
+
+    try {
+      user = await this._userRepo.create({
+        login,
+        password,
+        createdAt,
+        updatedAt: createdAt,
+        version: 1,
+      });
+    } catch (err) {
+      throw err;
+    }
 
     return {
       id: user.id,
@@ -69,23 +76,26 @@ export class UserService {
 
     try {
       user = await this._userRepo.getById(userId);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      throw err;
     }
 
     if (oldPassword !== user.password) {
-      throw new HttpException(
-        `Provided old password is wrong`,
-        HttpStatus.FORBIDDEN,
-      );
+      throw new ForbiddenError(`Provided old password is wrong`);
     }
 
-    const result = await this._userRepo.update(userId, {
-      ...user,
-      password: newPassword,
-      version: user.version + 1,
-      updatedAt: new Date().getTime(),
-    });
+    let result: User;
+
+    try {
+      result = await this._userRepo.update(userId, {
+        ...user,
+        password: newPassword,
+        version: user.version + 1,
+        updatedAt: new Date().getTime(),
+      });
+    } catch (err) {
+      throw err;
+    }
 
     return {
       id: result.id,
@@ -96,11 +106,7 @@ export class UserService {
     };
   }
 
-  async delete(userId: string): Promise<void> {
-    try {
-      return await this._userRepo.delete(userId);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
-    }
+  delete(userId: string): Promise<void> {
+    return this._userRepo.delete(userId);
   }
 }

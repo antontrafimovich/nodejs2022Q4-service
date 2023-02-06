@@ -9,8 +9,11 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common/enums';
+import { HttpException } from '@nestjs/common/exceptions';
 
 import { Track } from '../model';
+import { BadInputError, NotFoundError } from '../utils';
 import { CreateTrackDTO, UpdateTrackDTO } from './dto';
 import { TrackService } from './track.service';
 
@@ -24,26 +27,66 @@ export class TrackController {
   }
 
   @Get(':id')
-  getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Track> {
-    return this._trackService.getById(id);
+  async getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Track> {
+    try {
+      return await this._trackService.getById(id);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
+    }
   }
 
   @Post()
-  create(@Body() createTrackDTO: CreateTrackDTO): Promise<Track> {
-    return this._trackService.create(createTrackDTO);
+  async create(@Body() createTrackDTO: CreateTrackDTO): Promise<Track> {
+    try {
+      return await this._trackService.create(createTrackDTO);
+    } catch (err) {
+      if (err instanceof BadInputError) {
+        throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+      }
+
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
+    }
   }
 
   @Put(':id')
-  updatePassword(
+  async update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateTrackDTO: UpdateTrackDTO,
   ): Promise<Track> {
-    return this._trackService.update(id, updateTrackDTO);
+    try {
+      return await this._trackService.update(id, updateTrackDTO);
+    } catch (err) {
+      if (err instanceof BadInputError) {
+        throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+      }
+
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
+    }
   }
 
   @Delete(':id')
   @HttpCode(204)
-  delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
-    return this._trackService.delete(id);
+  async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
+    try {
+      return await this._trackService.delete(id);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
+    }
   }
 }

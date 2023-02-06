@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { DB } from '../db/db.model';
 import { Favorite } from '../model';
+import { NotFoundError } from '../utils';
 
 @Injectable()
 export class FavoritesRepository {
@@ -57,7 +58,7 @@ export class FavoritesRepository {
   }
 
   private throwNotFoundError({ entityId, type }: Omit<Favorite, 'id'>) {
-    throw new Error(
+    throw new NotFoundError(
       `Favorite of type ${type} and id ${entityId} doesn't exist`,
     );
   }

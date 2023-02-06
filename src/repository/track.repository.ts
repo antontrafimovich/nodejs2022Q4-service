@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { DB } from '../db/db.model';
 import { Track } from '../model';
+import { NotFoundError } from '../utils';
 
 @Injectable()
 export class TrackRepository {
@@ -49,7 +50,7 @@ export class TrackRepository {
     });
   }
 
-  async update(id: string, track: Partial<Omit<Track, 'id'>>): Promise<Track> {
+  async update(id: string, track: Omit<Track, 'id'>): Promise<Track> {
     try {
       return await this._db.update({
         segment: this._segment,
@@ -77,6 +78,6 @@ export class TrackRepository {
   }
 
   private throwNotFoundError(id: string) {
-    throw new Error(`Track with id ${id} doesn't exist`);
+    throw new NotFoundError(`Track with id ${id} doesn't exist`);
   }
 }

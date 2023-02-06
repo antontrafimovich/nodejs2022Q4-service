@@ -18,7 +18,7 @@ export abstract class DB<TEntity extends DBRecord> {
   abstract update(params: {
     segment: string;
     fn: (entity: TEntity) => boolean;
-    payload: Partial<Omit<TEntity, 'id'>>;
+    payload: Omit<TEntity, 'id'>;
   }): Promise<TEntity>;
   abstract delete(params: {
     segment: string;

@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
@@ -24,26 +26,42 @@ export class ArtistController {
   }
 
   @Get(':id')
-  getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Artist> {
-    return this._artistService.getById(id);
+  async getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Artist> {
+    try {
+      return await this._artistService.getById(id);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Post()
-  create(@Body() createArtistDTO: CreateArtistDTO): Promise<Artist> {
-    return this._artistService.create(createArtistDTO);
+  async create(@Body() createArtistDTO: CreateArtistDTO): Promise<Artist> {
+    try {
+      return await this._artistService.create(createArtistDTO);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Put(':id')
-  updatePassword(
+  async update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateArtistDTO: UpdateArtistDTO,
   ): Promise<Artist> {
-    return this._artistService.update(id, updateArtistDTO);
+    try {
+      return await this._artistService.update(id, updateArtistDTO);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Delete(':id')
   @HttpCode(204)
-  delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
-    return this._artistService.delete(id);
+  async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
+    try {
+      return await this._artistService.delete(id);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    }
   }
 }

@@ -7,7 +7,11 @@ import {
   Post,
 } from '@nestjs/common';
 import { HttpCode } from '@nestjs/common/decorators';
+import { HttpStatus } from '@nestjs/common/enums';
+import { HttpException } from '@nestjs/common/exceptions';
+import { NotFoundError } from 'rxjs';
 
+import { ConflictError, UnprocessableEntityError } from '../utils';
 import { FullfilledFavorites } from './favorites.model';
 import { FavoritesService } from './favorites.service';
 
@@ -31,7 +35,17 @@ export class FavoritesController {
         message: `Track ${trackId} has been successfully added to favorites`,
       };
     } catch (err) {
-      throw err;
+      if (err instanceof UnprocessableEntityError) {
+        throw new HttpException(err.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      }
+
+      if (err instanceof ConflictError) {
+        throw new HttpException(err.message, HttpStatus.CONFLICT);
+      }
+
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
     }
   }
 
@@ -40,7 +54,15 @@ export class FavoritesController {
   async deleteTrackFromFavorites(
     @Param('id', new ParseUUIDPipe()) trackId: string,
   ): Promise<void> {
-    return this._favoriteService.deleteTrackFromFavorites(trackId);
+    try {
+      return await this._favoriteService.deleteTrackFromFavorites(trackId);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
+    }
   }
 
   @Post('album/:id')
@@ -54,7 +76,17 @@ export class FavoritesController {
         message: `Album ${album} has been successfully added to favorites`,
       };
     } catch (err) {
-      throw err;
+      if (err instanceof UnprocessableEntityError) {
+        throw new HttpException(err.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      }
+
+      if (err instanceof ConflictError) {
+        throw new HttpException(err.message, HttpStatus.CONFLICT);
+      }
+
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
     }
   }
 
@@ -63,7 +95,15 @@ export class FavoritesController {
   async deleteAlbumFromFavorites(
     @Param('id', new ParseUUIDPipe()) albumId: string,
   ): Promise<void> {
-    return this._favoriteService.deleteAlbumFromFavorites(albumId);
+    try {
+      return await this._favoriteService.deleteAlbumFromFavorites(albumId);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
+    }
   }
 
   @Post('artist/:id')
@@ -77,15 +117,33 @@ export class FavoritesController {
         message: `Artist ${artistId} has been successfully added to favorites`,
       };
     } catch (err) {
-      throw err;
+      if (err instanceof UnprocessableEntityError) {
+        throw new HttpException(err.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      }
+
+      if (err instanceof ConflictError) {
+        throw new HttpException(err.message, HttpStatus.CONFLICT);
+      }
+
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
     }
   }
 
   @Delete('artist/:id')
   @HttpCode(204)
-  deleteArtistFromFavorites(
+  async deleteArtistFromFavorites(
     @Param('id', new ParseUUIDPipe()) artistId: string,
   ): Promise<void> {
-    return this._favoriteService.deleteArtistFromFavorites(artistId);
+    try {
+      return await this._favoriteService.deleteArtistFromFavorites(artistId);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
+    }
   }
 }

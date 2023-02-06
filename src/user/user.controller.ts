@@ -9,8 +9,11 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common/enums';
+import { HttpException } from '@nestjs/common/exceptions';
 
 import { User } from '../model';
+import { ForbiddenError } from '../utils';
 import { CreateUserDTO, UpdatePasswordDTO } from './dto';
 import { UserService } from './user.service';
 
@@ -24,10 +27,14 @@ export class UserController {
   }
 
   @Get(':id')
-  getById(
+  async getById(
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<Omit<User, 'password'>> {
-    return this._userService.getById(id);
+    try {
+      return await this._userService.getById(id);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Post()
@@ -38,16 +45,28 @@ export class UserController {
   }
 
   @Put(':id')
-  updatePassword(
+  async updatePassword(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updatePasswordDTO: UpdatePasswordDTO,
   ): Promise<Omit<User, 'password'>> {
-    return this._userService.updatePassword(id, updatePasswordDTO);
+    try {
+      return await this._userService.updatePassword(id, updatePasswordDTO);
+    } catch (err) {
+      if (err instanceof ForbiddenError) {
+        throw new HttpException(err.message, HttpStatus.FORBIDDEN);
+      }
+
+      throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Delete(':id')
   @HttpCode(204)
-  delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
-    return this._userService.delete(id);
+  async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
+    try {
+      return await this._userService.delete(id);
+    } catch ({ message }) {
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    }
   }
 }

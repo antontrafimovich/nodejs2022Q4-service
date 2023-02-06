@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { DB } from '../db/db.model';
 
+import { DB } from '../db/db.model';
 import { Album } from '../model';
+import { NotFoundError } from '../utils';
 
 @Injectable()
 export class AlbumRepository {
@@ -49,7 +50,7 @@ export class AlbumRepository {
     });
   }
 
-  async update(id: string, album: Partial<Omit<Album, 'id'>>): Promise<Album> {
+  async update(id: string, album: Omit<Album, 'id'>): Promise<Album> {
     try {
       return await this._db.update({
         segment: this._segment,
@@ -77,6 +78,6 @@ export class AlbumRepository {
   }
 
   private throwNotFoundError(id: string) {
-    throw new Error(`Album with id ${id} doesn't exist`);
+    throw new NotFoundError(`Album with id ${id} doesn't exist`);
   }
 }
