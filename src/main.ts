@@ -13,7 +13,6 @@ async function bootstrap() {
   const port = Number.isInteger(Number(process.env.PORT))
     ? Number(process.env.PORT)
     : 4000;
-  console.log(typeof process.env.PORT);
   await app.listen(port);
 }
 bootstrap();
