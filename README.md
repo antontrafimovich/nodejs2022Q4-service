@@ -39,7 +39,7 @@ For more information about OpenAPI/Swagger please visit https://swagger.io/.
 
 This app is implemented according to the assignment from https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments/rest-service/assignment.md, but there're a couple of extensions:
 - 409 HTTP Error is being sent on try to add an entity to favorites which is already there.
-- 400 HTTP Error is being sent on try to update track or album with `artistId` or `albumId` values which doesn't exist in db.
+- 400 HTTP Error is being sent on try to update track or album with `artistId` or `albumId` values that don't exist in db.
 
 ## Testing
 
