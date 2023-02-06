@@ -59,7 +59,7 @@ export class TrackService {
       }
     } catch {
       throw new BadInputError(
-        `Can't create track, because artist with id ${artistId} doesn't exist`,
+        `Can't update track, because artist with id ${artistId} doesn't exist`,
       );
     }
 
@@ -69,7 +69,7 @@ export class TrackService {
       }
     } catch {
       throw new BadInputError(
-        `Can't create track, because album with id ${albumId} doesn't exist`,
+        `Can't update track, because album with id ${albumId} doesn't exist`,
       );
     }
 
