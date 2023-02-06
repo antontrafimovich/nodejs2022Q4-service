@@ -11,7 +11,7 @@ import {
 import { HttpCode } from '@nestjs/common/decorators';
 import { HttpStatus } from '@nestjs/common/enums';
 import { HttpException } from '@nestjs/common/exceptions';
-import { BadInputError } from 'src/utils';
+import { BadInputError, NotFoundError } from 'src/utils';
 
 import { Album } from '../model';
 import { AlbumService } from './album.service';
@@ -30,8 +30,12 @@ export class AlbumController {
   async getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Album> {
     try {
       return await this._albumService.getById(id);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
     }
   }
 
@@ -44,7 +48,11 @@ export class AlbumController {
         throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
       }
 
-      throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
     }
   }
 
@@ -60,7 +68,11 @@ export class AlbumController {
         throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
       }
 
-      throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
     }
   }
 
@@ -69,8 +81,12 @@ export class AlbumController {
   async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
     try {
       return await this._albumService.delete(id);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
     }
   }
 }

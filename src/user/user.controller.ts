@@ -13,7 +13,7 @@ import { HttpStatus } from '@nestjs/common/enums';
 import { HttpException } from '@nestjs/common/exceptions';
 
 import { User } from '../model';
-import { ForbiddenError } from '../utils';
+import { ForbiddenError, NotFoundError } from '../utils';
 import { CreateUserDTO, UpdatePasswordDTO } from './dto';
 import { UserService } from './user.service';
 
@@ -32,8 +32,12 @@ export class UserController {
   ): Promise<Omit<User, 'password'>> {
     try {
       return await this._userService.getById(id);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
     }
   }
 
@@ -56,7 +60,11 @@ export class UserController {
         throw new HttpException(err.message, HttpStatus.FORBIDDEN);
       }
 
-      throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
     }
   }
 
@@ -65,8 +73,12 @@ export class UserController {
   async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
     try {
       return await this._userService.delete(id);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
     }
   }
 }

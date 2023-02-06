@@ -46,6 +46,8 @@ export class FavoritesController {
       if (err instanceof NotFoundError) {
         throw new HttpException(err.message, HttpStatus.NOT_FOUND);
       }
+
+      throw err;
     }
   }
 
@@ -87,6 +89,8 @@ export class FavoritesController {
       if (err instanceof NotFoundError) {
         throw new HttpException(err.message, HttpStatus.NOT_FOUND);
       }
+
+      throw err;
     }
   }
 
@@ -128,6 +132,8 @@ export class FavoritesController {
       if (err instanceof NotFoundError) {
         throw new HttpException(err.message, HttpStatus.NOT_FOUND);
       }
+
+      throw err;
     }
   }
 

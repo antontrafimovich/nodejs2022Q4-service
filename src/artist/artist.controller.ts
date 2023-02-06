@@ -13,6 +13,7 @@ import {
 import { HttpCode } from '@nestjs/common/decorators';
 
 import { Artist } from '../model';
+import { NotFoundError } from '../utils';
 import { ArtistService } from './artist.service';
 import { CreateArtistDTO, UpdateArtistDTO } from './dto';
 
@@ -29,8 +30,12 @@ export class ArtistController {
   async getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Artist> {
     try {
       return await this._artistService.getById(id);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
     }
   }
 
@@ -38,8 +43,12 @@ export class ArtistController {
   async create(@Body() createArtistDTO: CreateArtistDTO): Promise<Artist> {
     try {
       return await this._artistService.create(createArtistDTO);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
     }
   }
 
@@ -50,8 +59,12 @@ export class ArtistController {
   ): Promise<Artist> {
     try {
       return await this._artistService.update(id, updateArtistDTO);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
     }
   }
 
@@ -60,8 +73,12 @@ export class ArtistController {
   async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
     try {
       return await this._artistService.delete(id);
-    } catch ({ message }) {
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
+      }
+
+      throw err;
     }
   }
 }
