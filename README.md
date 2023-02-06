@@ -14,7 +14,7 @@ git clone {repository URL}
 ## Switching to the branch with implementation
 
 ```
-git checkout develop
+git checkout dev
 ```
 
 ## Installing NPM modules
