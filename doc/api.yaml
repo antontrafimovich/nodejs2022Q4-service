@@ -127,7 +127,24 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
+                  type: object
+                  title: example
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    login:
+                      type: string
+                      example: TestLogin
+                    version:
+                      type: integer
+                      example: 2
+                    createdAt:
+                      type: integer
+                      example: 1655000000
+                    updatedAt:
+                      type: integer
+                      example: 1655000000
 
     post:
       tags:
@@ -197,7 +214,24 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                title: example
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  login:
+                    type: string
+                    example: TestLogin
+                  version:
+                    type: integer
+                    example: 2
+                  createdAt:
+                    type: integer
+                    example: 1655000000
+                  updatedAt:
+                    type: integer
+                    example: 1655000000
         400:
           description: Bad request. userId is invalid (not uuid)
         404:
@@ -301,15 +335,19 @@ paths:
                   type: string
                 artistId:
                   type: string
+                  nullable: true
                   format: uuid
                 albumId:
                   type: string
+                  nullable: true
                   format: uuid
                 duration:
                   type: integer
                   description: In seconds
               required:
                 - name
+                - artistId
+                - albumId
                 - duration
       responses:
         201:
@@ -375,6 +413,8 @@ paths:
               required:
                 - name
                 - duration
+                - artistId
+                - albumId
       responses:
         200:
           description: The track has been updated.
@@ -458,6 +498,7 @@ paths:
               required:
                 - name
                 - year
+                - artistId
       responses:
         201:
           description: Almub is created
@@ -515,6 +556,7 @@ paths:
               required:
                 - name
                 - year
+                - artistId
       responses:
         200:
           description: The album has been updated.
