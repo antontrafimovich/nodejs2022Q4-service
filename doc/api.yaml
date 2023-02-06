@@ -729,6 +729,8 @@ paths:
                   - message
         400:
           description: Bad. trackId is invalid (not uuid)
+        409:
+          description: Track with such an id has already beed added to favorites
         422:
           description: Track with id doesn't exist.
     delete:
@@ -770,6 +772,8 @@ paths:
                   - message
         400:
           description: Bad. albumId is invalid (not uuid)
+        409:
+          description: Album with such an id has already beed added to favorites
         422:
           description: Album with id doesn't exist.
     delete:
@@ -811,6 +815,8 @@ paths:
                   - message
         400:
           description: Bad request. artistId is invalid (not uuid)
+        409:
+          description: Artist with such an id has already beed added to favorites
         422:
           description: Artist with id doesn't exist.
     delete:
