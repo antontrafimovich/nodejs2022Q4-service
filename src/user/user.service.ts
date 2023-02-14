@@ -1,21 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { ForbiddenError } from 'src/utils';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { User } from '../model';
-import { UserRepository } from '../repository/user.repository';
+import { ForbiddenError, NotFoundError } from '../utils';
 import { UpdatePasswordDTO } from './dto';
+import { UserEntity } from './entity/user.entity';
 
 @Injectable()
 export class UserService {
-  constructor(private _userRepo: UserRepository) {}
+  constructor(
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
+  ) {}
 
   async getAll(): Promise<Omit<User, 'password'>[]> {
     try {
-      const result = await this._userRepo.getAll();
+      const result = await this.userRepository.find();
 
       return result.map((user) => {
         return {
           ...user,
+          createdAt: parseInt(user.createdAt),
+          updatedAt: parseInt(user.updatedAt),
           password: undefined,
         };
       });
@@ -26,13 +33,14 @@ export class UserService {
 
   async getById(id: string): Promise<Omit<User, 'password'>> {
     try {
-      const user = await this._userRepo.getById(id);
+      const user = await this.userRepository.findOneOrFail({ where: { id } });
+
       return {
         id,
         login: user.login,
         version: user.version,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
+        createdAt: parseInt(user.createdAt),
+        updatedAt: parseInt(user.updatedAt),
       };
     } catch (err) {
       throw err;
@@ -45,16 +53,18 @@ export class UserService {
   }: Pick<User, 'login' | 'password'>): Promise<Omit<User, 'password'>> {
     const createdAt = new Date().getTime();
 
-    let user: User;
+    let user: UserEntity;
 
     try {
-      user = await this._userRepo.create({
+      const newUser = this.userRepository.create({
         login,
         password,
-        createdAt,
-        updatedAt: createdAt,
+        createdAt: createdAt.toString(),
+        updatedAt: createdAt.toString(),
         version: 1,
       });
+
+      user = await this.userRepository.save(newUser);
     } catch (err) {
       throw err;
     }
@@ -63,8 +73,8 @@ export class UserService {
       id: user.id,
       login: user.login,
       version: user.version,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      createdAt: parseInt(user.createdAt),
+      updatedAt: parseInt(user.updatedAt),
     };
   }
 
@@ -72,10 +82,10 @@ export class UserService {
     userId: string,
     { oldPassword, newPassword }: UpdatePasswordDTO,
   ): Promise<Omit<User, 'password'>> {
-    let user: User;
+    let user: UserEntity;
 
     try {
-      user = await this._userRepo.getById(userId);
+      user = await this.userRepository.findOneOrFail({ where: { id: userId } });
     } catch (err) {
       throw err;
     }
@@ -84,29 +94,33 @@ export class UserService {
       throw new ForbiddenError(`Provided old password is wrong`);
     }
 
-    let result: User;
+    let updatedUser: UserEntity;
 
     try {
-      result = await this._userRepo.update(userId, {
+      updatedUser = await this.userRepository.save({
         ...user,
         password: newPassword,
         version: user.version + 1,
-        updatedAt: new Date().getTime(),
+        updatedAt: new Date().getTime().toString(),
       });
     } catch (err) {
       throw err;
     }
 
     return {
-      id: result.id,
-      login: result.login,
-      version: result.version,
-      createdAt: result.createdAt,
-      updatedAt: result.updatedAt,
+      id: updatedUser.id,
+      login: updatedUser.login,
+      version: updatedUser.version,
+      createdAt: parseInt(updatedUser.createdAt),
+      updatedAt: parseInt(updatedUser.updatedAt),
     };
   }
 
-  delete(userId: string): Promise<void> {
-    return this._userRepo.delete(userId);
+  async delete(userId: string): Promise<void> {
+    const result = await this.userRepository.delete(userId);
+
+    if (result.affected === 0) {
+      throw new NotFoundError(`User with id ${userId} wasn't found`);
+    }
   }
 }
