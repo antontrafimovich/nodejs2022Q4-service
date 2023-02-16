@@ -43,7 +43,7 @@ export class UserService {
         updatedAt: parseInt(user.updatedAt),
       };
     } catch (err) {
-      throw err;
+      throw new NotFoundError(`User with id ${id} doesn't exist`);
     }
   }
 
@@ -87,7 +87,7 @@ export class UserService {
     try {
       user = await this.userRepository.findOneOrFail({ where: { id: userId } });
     } catch (err) {
-      throw err;
+      throw new NotFoundError(`User with id ${userId} doesn't exist`);
     }
 
     if (oldPassword !== user.password) {
