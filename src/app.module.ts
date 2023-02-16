@@ -7,7 +7,6 @@ import { ArtistModule } from './artist/artist.module';
 import { DBModule } from './db/db.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { TrackModule } from './track/track.module';
-import { UserEntity } from './user/entity/user.entity';
 import { UserModule } from './user/user.module';
 
 dotenv.config();
@@ -23,7 +22,7 @@ dotenv.config();
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DATABASE,
       synchronize: true,
-      entities: [UserEntity],
+      autoLoadEntities: true,
     }),
     TrackModule,
     UserModule,
