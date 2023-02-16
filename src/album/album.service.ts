@@ -1,27 +1,37 @@
 import { Injectable } from '@nestjs/common';
-import { ArtistRepository } from 'src/repository/artist.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ArtistEntity } from 'src/artist/entity/artist.entity';
+import { FavoriteEntity } from 'src/favorites/entity/favorite.entity';
+import { TrackEntity } from 'src/track/entity/track.entity';
+import { Repository } from 'typeorm';
 
 import { Album, Track } from '../model';
-import { AlbumRepository } from '../repository/album.repository';
-import { FavoritesRepository } from '../repository/favorites.repository';
-import { TrackRepository } from '../repository/track.repository';
-import { BadInputError } from '../utils';
+import { BadInputError, NotFoundError } from '../utils';
+import { AlbumEntity } from './entity/album.entity';
 
 @Injectable()
 export class AlbumService {
   constructor(
-    private _albumRepo: AlbumRepository,
-    private _trackRepo: TrackRepository,
-    private _artistRepo: ArtistRepository,
-    private _favoritesRepo: FavoritesRepository,
+    @InjectRepository(ArtistEntity)
+    private artistRepository: Repository<ArtistEntity>,
+    @InjectRepository(TrackEntity)
+    private trackRepository: Repository<TrackEntity>,
+    @InjectRepository(AlbumEntity)
+    private albumRepository: Repository<AlbumEntity>,
+    @InjectRepository(FavoriteEntity)
+    private favoritesRepository: Repository<FavoriteEntity>,
   ) {}
 
   getAll(): Promise<Album[]> {
-    return this._albumRepo.getAll();
+    return this.albumRepository.find();
   }
 
-  getById(id: string): Promise<Album> {
-    return this._albumRepo.getById(id);
+  async getById(id: string): Promise<Album> {
+    try {
+      return await this.albumRepository.findOneOrFail({ where: { id } });
+    } catch (err) {
+      throw new NotFoundError(`Album with id ${id} doesn't exist.`);
+    }
   }
 
   async create(album: Omit<Album, 'id'>): Promise<Album> {
@@ -29,7 +39,7 @@ export class AlbumService {
 
     try {
       if (artistId !== null) {
-        await this._artistRepo.getById(artistId);
+        await this.artistRepository.findOneOrFail({ where: { id: artistId } });
       }
     } catch {
       throw new BadInputError(
@@ -37,7 +47,13 @@ export class AlbumService {
       );
     }
 
-    return await this._albumRepo.create(album);
+    try {
+      const newAlbum = this.albumRepository.create(album);
+
+      return await this.albumRepository.save(newAlbum);
+    } catch (err) {
+      throw err;
+    }
   }
 
   async update(albumId: string, album: Omit<Album, 'id'>): Promise<Album> {
@@ -45,7 +61,7 @@ export class AlbumService {
 
     try {
       if (artistId !== null) {
-        await this._artistRepo.getById(artistId);
+        await this.artistRepository.find({ where: { id: artistId } });
       }
     } catch {
       throw new BadInputError(
@@ -53,35 +69,57 @@ export class AlbumService {
       );
     }
 
-    return this._albumRepo.update(albumId, album);
+    let existingAlbum: Album;
+
+    try {
+      existingAlbum = await this.getById(albumId);
+    } catch (err) {
+      throw err;
+    }
+
+    try {
+      return await this.albumRepository.save({
+        ...existingAlbum,
+        ...album,
+        id: albumId,
+      });
+    } catch (err) {
+      throw err;
+    }
   }
 
   async delete(albumId: string): Promise<void> {
-    try {
-      await this._albumRepo.delete(albumId);
-    } catch (err) {
-      throw err;
+    const deleteAlbumResult = await this.albumRepository.delete({
+      id: albumId,
+    });
+
+    if (deleteAlbumResult.affected === 0) {
+      throw new NotFoundError(`Album with id ${albumId} wasn't found`);
     }
 
-    try {
-      await this._favoritesRepo.delete({ type: 'album', entityId: albumId });
-    } catch {}
+    await this.favoritesRepository.delete({
+      type: 'album',
+      entityId: albumId,
+    });
 
     let albumTracks: Track[];
     try {
-      albumTracks = await this._trackRepo.getMany(
-        (track) => track.albumId === albumId,
-      );
+      albumTracks = await this.trackRepository.find({ where: { albumId } });
     } catch (err) {
       throw err;
     }
 
-    try {
-      const updateTracksPromises = albumTracks.map((track) =>
-        this._trackRepo.update(track.id, { ...track, albumId: null }),
-      );
+    if (!albumTracks) {
+      return;
+    }
 
-      await Promise.all(updateTracksPromises);
+    try {
+      const updatedTracks = albumTracks.map((track) => ({
+        ...track,
+        albumId: null,
+      }));
+
+      await this.trackRepository.save(updatedTracks);
     } catch (err) {
       throw err;
     }
