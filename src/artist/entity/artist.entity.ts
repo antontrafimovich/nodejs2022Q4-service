@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+
+import { AlbumEntity } from '../../album/entity/album.entity';
 
 @Entity()
 export class ArtistEntity {
@@ -10,4 +12,9 @@ export class ArtistEntity {
 
   @Column()
   grammy: boolean;
+
+  @OneToMany(() => AlbumEntity, (album) => album.artist, {
+    orphanedRowAction: 'delete',
+  })
+  albums: AlbumEntity[];
 }

@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ArtistEntity } from 'src/artist/entity/artist.entity';
-import { FavoriteEntity } from 'src/favorites/entity/favorite.entity';
-import { TrackEntity } from 'src/track/entity/track.entity';
 import { Repository } from 'typeorm';
 
-import { Album, Track } from '../model';
+import { ArtistEntity } from '../artist/entity/artist.entity';
+import { FavoriteEntity } from '../favorites/entity/favorite.entity';
+import { Album, Artist } from '../model';
 import { BadInputError, NotFoundError } from '../utils';
 import { AlbumEntity } from './entity/album.entity';
 
@@ -14,21 +13,32 @@ export class AlbumService {
   constructor(
     @InjectRepository(ArtistEntity)
     private artistRepository: Repository<ArtistEntity>,
-    @InjectRepository(TrackEntity)
-    private trackRepository: Repository<TrackEntity>,
     @InjectRepository(AlbumEntity)
     private albumRepository: Repository<AlbumEntity>,
     @InjectRepository(FavoriteEntity)
     private favoritesRepository: Repository<FavoriteEntity>,
   ) {}
 
-  getAll(): Promise<Album[]> {
-    return this.albumRepository.find();
+  async getAll(): Promise<Album[]> {
+    const results = await this.albumRepository.find({
+      relations: {
+        artist: true,
+      },
+    });
+
+    return results.map(this.mapAlbumEntityToAlbum);
   }
 
   async getById(id: string): Promise<Album> {
     try {
-      return await this.albumRepository.findOneOrFail({ where: { id } });
+      const album = await this.albumRepository.findOneOrFail({
+        where: { id },
+        relations: {
+          artist: true,
+        },
+      });
+
+      return this.mapAlbumEntityToAlbum(album);
     } catch (err) {
       throw new NotFoundError(`Album with id ${id} doesn't exist.`);
     }
@@ -37,10 +47,10 @@ export class AlbumService {
   async create(album: Omit<Album, 'id'>): Promise<Album> {
     const { artistId } = album;
 
+    let artist: ArtistEntity;
+
     try {
-      if (artistId !== null) {
-        await this.artistRepository.findOneOrFail({ where: { id: artistId } });
-      }
+      artist = await this.getArtistById(artistId);
     } catch {
       throw new BadInputError(
         `Can't create album, because artist with id ${artistId} doesn't exist`,
@@ -48,9 +58,15 @@ export class AlbumService {
     }
 
     try {
-      const newAlbum = this.albumRepository.create(album);
+      const newAlbum = this.albumRepository.create({
+        name: album.name,
+        year: album.year,
+        artist,
+      });
 
-      return await this.albumRepository.save(newAlbum);
+      const result = await this.albumRepository.save(newAlbum);
+
+      return this.mapAlbumEntityToAlbum(result);
     } catch (err) {
       throw err;
     }
@@ -59,30 +75,30 @@ export class AlbumService {
   async update(albumId: string, album: Omit<Album, 'id'>): Promise<Album> {
     const { artistId } = album;
 
+    let artist: ArtistEntity;
     try {
-      if (artistId !== null) {
-        await this.artistRepository.find({ where: { id: artistId } });
-      }
+      artist = await this.artistRepository.findOneByOrFail({ id: artistId });
     } catch {
       throw new BadInputError(
         `Can't update album, because artist with id ${artistId} doesn't exist`,
       );
     }
 
-    let existingAlbum: Album;
-
     try {
-      existingAlbum = await this.getById(albumId);
+      await this.getById(albumId);
     } catch (err) {
       throw err;
     }
 
     try {
-      return await this.albumRepository.save({
-        ...existingAlbum,
-        ...album,
+      const result = await this.albumRepository.save({
         id: albumId,
+        name: album.name,
+        year: album.year,
+        artist,
       });
+
+      return this.mapAlbumEntityToAlbum(result);
     } catch (err) {
       throw err;
     }
@@ -101,27 +117,22 @@ export class AlbumService {
       type: 'album',
       entityId: albumId,
     });
+  }
 
-    let albumTracks: Track[];
-    try {
-      albumTracks = await this.trackRepository.find({ where: { albumId } });
-    } catch (err) {
-      throw err;
+  private async getArtistById(id: string): Promise<ArtistEntity> {
+    if (id === null) {
+      return null;
     }
 
-    if (!albumTracks) {
-      return;
-    }
+    return await this.artistRepository.findOneByOrFail({ id });
+  }
 
-    try {
-      const updatedTracks = albumTracks.map((track) => ({
-        ...track,
-        albumId: null,
-      }));
-
-      await this.trackRepository.save(updatedTracks);
-    } catch (err) {
-      throw err;
-    }
+  private mapAlbumEntityToAlbum(entity: AlbumEntity): Album {
+    return {
+      id: entity.id, // uuid v4
+      name: entity.name,
+      year: entity.year,
+      artistId: entity.artist?.id ?? null,
+    };
   }
 }

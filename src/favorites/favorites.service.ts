@@ -70,7 +70,14 @@ export class FavoritesService {
 
     return {
       artists,
-      albums,
+      albums: albums.map((album) => {
+        return {
+          id: album.id,
+          name: album.name,
+          year: album.year,
+          artistId: album.artist.id,
+        };
+      }),
       tracks,
     };
   }
