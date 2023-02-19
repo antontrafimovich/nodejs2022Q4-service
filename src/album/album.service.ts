@@ -3,8 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { ArtistEntity } from '../artist/entity/artist.entity';
-import { FavoriteEntity } from '../favorites/entity/favorite.entity';
-import { Album, Artist } from '../model';
+import { Album } from '../model';
 import { BadInputError, NotFoundError } from '../utils';
 import { AlbumEntity } from './entity/album.entity';
 
@@ -15,8 +14,6 @@ export class AlbumService {
     private artistRepository: Repository<ArtistEntity>,
     @InjectRepository(AlbumEntity)
     private albumRepository: Repository<AlbumEntity>,
-    @InjectRepository(FavoriteEntity)
-    private favoritesRepository: Repository<FavoriteEntity>,
   ) {}
 
   async getAll(): Promise<Album[]> {
@@ -112,11 +109,6 @@ export class AlbumService {
     if (deleteAlbumResult.affected === 0) {
       throw new NotFoundError(`Album with id ${albumId} wasn't found`);
     }
-
-    await this.favoritesRepository.delete({
-      type: 'album',
-      entityId: albumId,
-    });
   }
 
   private async getArtistById(id: string): Promise<ArtistEntity> {
