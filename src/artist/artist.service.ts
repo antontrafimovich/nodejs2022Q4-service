@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { FavoriteEntity } from '../favorites/entity/favorite.entity';
 import { Artist } from '../model';
 import { NotFoundError } from '../utils';
 import { ArtistEntity } from './entity/artist.entity';
@@ -12,8 +11,6 @@ export class ArtistService {
   constructor(
     @InjectRepository(ArtistEntity)
     private artistRepository: Repository<ArtistEntity>,
-    @InjectRepository(FavoriteEntity)
-    private favoritesRepository: Repository<FavoriteEntity>,
   ) {}
 
   getAll(): Promise<Artist[]> {
@@ -64,10 +61,5 @@ export class ArtistService {
     if (deleteArtistResult.affected === 0) {
       throw new NotFoundError(`Album with id ${artistId} wasn't found`);
     }
-
-    await this.favoritesRepository.delete({
-      type: 'artist',
-      entityId: artistId,
-    });
   }
 }

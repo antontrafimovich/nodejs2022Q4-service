@@ -1,6 +1,14 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 import { AlbumEntity } from '../../album/entity/album.entity';
+import { ArtistFavoriteEntity } from '../../favorites/entity/artist-favorite.entity';
+import { TrackEntity } from '../../track/entity/track.entity';
 
 @Entity()
 export class ArtistEntity {
@@ -17,4 +25,16 @@ export class ArtistEntity {
     orphanedRowAction: 'delete',
   })
   albums: AlbumEntity[];
+
+  @OneToMany(() => TrackEntity, (track) => track.artist, {
+    orphanedRowAction: 'delete',
+  })
+  tracks: TrackEntity[];
+
+  @OneToOne(
+    () => ArtistFavoriteEntity,
+    (aritstFavorite) => aritstFavorite.artist,
+    { orphanedRowAction: 'delete' },
+  )
+  favorite: ArtistFavoriteEntity;
 }
