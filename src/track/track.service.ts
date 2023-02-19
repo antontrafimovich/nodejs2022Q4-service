@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 
 import { AlbumEntity } from '../album/entity/album.entity';
 import { ArtistEntity } from '../artist/entity/artist.entity';
-import { FavoriteEntity } from '../favorites/entity/favorite.entity';
 import { Track } from '../model';
 import { BadInputError, NotFoundError } from '../utils';
 import { TrackEntity } from './entity/track.entity';
@@ -18,17 +17,30 @@ export class TrackService {
     private albumRepository: Repository<AlbumEntity>,
     @InjectRepository(TrackEntity)
     private trackRepository: Repository<TrackEntity>,
-    @InjectRepository(FavoriteEntity)
-    private favoritesRepository: Repository<FavoriteEntity>,
   ) {}
 
-  getAll(): Promise<Track[]> {
-    return this.trackRepository.find();
+  async getAll(): Promise<Track[]> {
+    const result = await this.trackRepository.find({
+      relations: {
+        artist: true,
+        album: true,
+      },
+    });
+
+    return result.map(this.mapTrackEntityToTrack);
   }
 
   async getById(id: string): Promise<Track> {
     try {
-      return await this.trackRepository.findOneOrFail({ where: { id } });
+      const result = await this.trackRepository.findOneOrFail({
+        where: { id },
+        relations: {
+          artist: true,
+          album: true,
+        },
+      });
+
+      return this.mapTrackEntityToTrack(result);
     } catch (err) {
       throw new NotFoundError(`Track with id ${id} doesn't exist.`);
     }
@@ -37,20 +49,18 @@ export class TrackService {
   async create(track: Omit<Track, 'id'>): Promise<Track> {
     const { artistId, albumId } = track;
 
+    let artist: ArtistEntity;
     try {
-      if (artistId !== null) {
-        await this.artistRepository.findOneOrFail({ where: { id: artistId } });
-      }
+      artist = await this.getArtistById(artistId);
     } catch {
       throw new BadInputError(
         `Can't create track, because artist with id ${artistId} doesn't exist`,
       );
     }
 
+    let album: AlbumEntity;
     try {
-      if (albumId !== null) {
-        await this.albumRepository.findOneOrFail({ where: { id: albumId } });
-      }
+      album = await this.getAlbumById(albumId);
     } catch {
       throw new BadInputError(
         `Can't create track, because album with id ${albumId} doesn't exist`,
@@ -58,9 +68,16 @@ export class TrackService {
     }
 
     try {
-      const newTrack = this.trackRepository.create(track);
+      const newTrack = this.trackRepository.create({
+        name: track.name,
+        artist,
+        album,
+        duration: track.duration,
+      });
 
-      return await this.trackRepository.save(newTrack);
+      const saveResult = await this.trackRepository.save(newTrack);
+
+      return this.mapTrackEntityToTrack(saveResult);
     } catch (err) {
       throw err;
     }
@@ -69,40 +86,40 @@ export class TrackService {
   async update(trackId: string, track: Omit<Track, 'id'>): Promise<Track> {
     const { artistId, albumId } = track;
 
+    let artist: ArtistEntity;
     try {
-      if (artistId !== null) {
-        await this.artistRepository.findOneOrFail({ where: { id: artistId } });
-      }
+      artist = await this.getArtistById(artistId);
     } catch {
       throw new BadInputError(
         `Can't update track, because artist with id ${artistId} doesn't exist`,
       );
     }
 
+    let album: AlbumEntity;
     try {
-      if (albumId !== null) {
-        await this.albumRepository.findOneOrFail({ where: { id: albumId } });
-      }
+      album = await this.getAlbumById(albumId);
     } catch {
       throw new BadInputError(
         `Can't update track, because album with id ${albumId} doesn't exist`,
       );
     }
 
-    let existingTrack: Track;
-
     try {
-      existingTrack = await this.getById(trackId);
+      await this.getById(trackId);
     } catch (err) {
       throw err;
     }
 
     try {
-      return await this.trackRepository.save({
-        ...existingTrack,
-        ...track,
+      const saveResult = await this.trackRepository.save({
         id: trackId,
+        name: track.name,
+        album,
+        artist,
+        duration: track.duration,
       });
+
+      return this.mapTrackEntityToTrack(saveResult);
     } catch (err) {
       throw err;
     }
@@ -117,9 +134,35 @@ export class TrackService {
       throw new NotFoundError(`Track with id ${trackId} wasn't found`);
     }
 
-    await this.favoritesRepository.delete({
-      type: 'track',
-      entityId: trackId,
-    });
+    // await this.favoritesRepository.delete({
+    //   type: 'track',
+    //   entityId: trackId,
+    // });
+  }
+
+  private async getAlbumById(id: string): Promise<AlbumEntity> {
+    if (id === null) {
+      return null;
+    }
+
+    return await this.albumRepository.findOneByOrFail({ id });
+  }
+
+  private async getArtistById(id: string): Promise<ArtistEntity> {
+    if (id === null) {
+      return null;
+    }
+
+    return await this.artistRepository.findOneByOrFail({ id });
+  }
+
+  private mapTrackEntityToTrack(entity: TrackEntity): Track {
+    return {
+      id: entity.id, // uuid v4
+      name: entity.name,
+      artistId: entity.artist?.id ?? null,
+      albumId: entity.album?.id ?? null,
+      duration: entity.duration,
+    };
   }
 }

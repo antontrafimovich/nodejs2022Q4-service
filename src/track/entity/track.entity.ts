@@ -1,7 +1,14 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 import { AlbumEntity } from '../../album/entity/album.entity';
 import { ArtistEntity } from '../../artist/entity/artist.entity';
+import { TrackFavoriteEntity } from '../../favorites/entity/track-favorite.entity';
 
 @Entity()
 export class TrackEntity {
@@ -11,20 +18,23 @@ export class TrackEntity {
   @Column()
   name: string;
 
-  @Column({ type: 'uuid', nullable: true })
-  @ManyToOne(() => AlbumEntity, undefined, {
-    cascade: ['remove'],
+  @ManyToOne(() => AlbumEntity, (album) => album.tracks, {
+    cascade: true,
     onDelete: 'SET NULL',
   })
-  albumId: string;
+  album: AlbumEntity;
 
-  @Column({ type: 'uuid', nullable: true })
-  @ManyToOne(() => ArtistEntity, undefined, {
-    cascade: ['remove'],
+  @ManyToOne(() => ArtistEntity, (artist) => artist.tracks, {
+    cascade: true,
     onDelete: 'SET NULL',
   })
-  artistId: string;
+  artist: ArtistEntity;
 
   @Column()
   duration: number;
+
+  @OneToOne(() => TrackFavoriteEntity, (trackFavorite) => trackFavorite.track, {
+    orphanedRowAction: 'delete',
+  })
+  favorite: TrackFavoriteEntity;
 }
