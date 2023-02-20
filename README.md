@@ -1,4 +1,4 @@
-# Home Library Service Containerization
+# Home Library Service PostgreSQL & ORM
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ git clone https://github.com/antontrafimovich/nodejs2022Q4-service.git
 ## Switching to the branch with implementation
 
 ```
-git checkout docker
+git checkout postgres
 ```
 
 ## Running application
@@ -22,12 +22,3 @@ git checkout docker
 docker-compose build
 docker-compose up
 ```
-
-## Scanning for vulnerabilities
-To scan images for vulnerabilities those images should be already built, so first execute `docker-compose build` command and then
-```
-npm run scan
-```
-
-## Notes
-Link to docker hub - https://hub.docker.com/repository/docker/tonytrof/nodejs2022q4-service/general
