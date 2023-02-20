@@ -2,31 +2,31 @@
 
 ## Prerequisites
 
-- Git - [Download & Install Git](https://git-scm.com/downloads).
-- Node.js - [Download & Install Node.js](https://nodejs.org/en/download/) and the npm package manager.
+- Docker - [Download & Install Docker](https://docs.docker.com/get-docker/).
 
 ## Downloading
 
 ```
-git clone {repository URL}
+git clone https://github.com/antontrafimovich/nodejs2022Q4-service.git
 ```
 
 ## Switching to the branch with implementation
 
 ```
-git checkout dev
-```
-
-## Installing NPM modules
-
-```
-npm install
+git checkout docker
 ```
 
 ## Running application
 
 ```
-npm start
+docker-compose build
+docker-compose start
+```
+
+## Scanning
+To scan for vulnerabilities images should be already built, so first execute `docker-compose build` command and then
+```
+npm run scan
 ```
 
 After starting the app on port (4000 as default) you can open
@@ -36,21 +36,4 @@ if port is different from 4000.
 For more information about OpenAPI/Swagger please visit https://swagger.io/.
 
 ## Notes
-
-This app is implemented according to the assignment from https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments/rest-service/assignment.md, but there're a couple of extensions:
-- 409 HTTP Error is being sent on try to add an entity to favorites which is already there.
-- 400 HTTP Error is being sent on try to update track or album with `artistId` or `albumId` values that don't exist in db.
-
-## Testing
-
-After application running open new terminal and enter:
-
-```
-npm run test
-```
-
-### To check linting run
-
-```
-npm run lint
-```
+Link to docker hub - https://hub.docker.com/repository/docker/tonytrof/nodejs2022q4-service/general
