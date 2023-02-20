@@ -18,6 +18,11 @@ git checkout postgres
 
 ## Running application
 
+First, you need to create `.env` file. Take a `.env.example` file as a reference or just rename it to `.env`
+
+Second, make sure that docker daemon is up and running
+
+Third, run this commands:
 ```
 docker-compose build
 docker-compose up
