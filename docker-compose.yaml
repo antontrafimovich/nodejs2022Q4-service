@@ -2,30 +2,40 @@ version: '3'
 services:
   backend:
     build: .
+    image: tonytrof/nodejs2022q4-service:backend
     networks:
       - nodejs_service
     ports:
       - ${PORT}:${PORT}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - ${PWD}/src:/usr/app/src
     env_file: .env
-    restart: on-failure
+    restart: always
   db:
     build: ./database/
+    image: tonytrof/nodejs2022q4-service:db
     hostname: ${POSTGRES_HOST}
     networks:
       - nodejs_service
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE}
       POSTGRES_USER: ${POSTGRES_USERNAME}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DATABASE}
-    restart: on-failure
+    command: ["postgres", "-c", "log_statement=all", "-c", "logging_collector=true", "-c", "log_directory=/var/lib/postgresql/logs"]
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DATABASE} -U ${POSTGRES_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - postgres-logs:/var/lib/postgresql/logs
 
 networks:
   nodejs_service:
@@ -33,3 +43,4 @@ networks:
 
 volumes:
   postgres-data:
+  postgres-logs:
