@@ -18,6 +18,9 @@ git checkout docker
 
 ## Running application
 
+First, you need to create `.env` file. Take a `.env.example` file as a reference or just rename it to `.env`
+
+Second, run this commands:
 ```
 docker-compose build
 docker-compose up
