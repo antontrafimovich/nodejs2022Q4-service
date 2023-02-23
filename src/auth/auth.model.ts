@@ -1,3 +1,3 @@
-export type AuthLoginResponse = {
+export type AuthLoginResult = {
   accessToken: string;
 };
