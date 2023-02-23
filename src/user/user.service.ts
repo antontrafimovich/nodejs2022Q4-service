@@ -18,30 +18,27 @@ export class UserService {
     try {
       const result = await this.userRepository.find();
 
-      return result.map((user) => {
-        return {
-          ...user,
-          createdAt: parseInt(user.createdAt),
-          updatedAt: parseInt(user.updatedAt),
-          password: undefined,
-        };
-      });
+      return result.map(this.mapUserEntityToUser);
     } catch (err) {
       throw err;
     }
+  }
+
+  async getOneBy(params: Partial<UserEntity>): Promise<Omit<User, 'password'>> {
+    const result = await this.userRepository.findOneBy(params);
+
+    if (result === null) {
+      return null;
+    }
+
+    return this.mapUserEntityToUser(result);
   }
 
   async getById(id: string): Promise<Omit<User, 'password'>> {
     try {
       const user = await this.userRepository.findOneOrFail({ where: { id } });
 
-      return {
-        id,
-        login: user.login,
-        version: user.version,
-        createdAt: parseInt(user.createdAt),
-        updatedAt: parseInt(user.updatedAt),
-      };
+      return this.mapUserEntityToUser(user);
     } catch (err) {
       throw new NotFoundError(`User with id ${id} doesn't exist`);
     }
@@ -69,13 +66,7 @@ export class UserService {
       throw err;
     }
 
-    return {
-      id: user.id,
-      login: user.login,
-      version: user.version,
-      createdAt: parseInt(user.createdAt),
-      updatedAt: parseInt(user.updatedAt),
-    };
+    return this.mapUserEntityToUser(user);
   }
 
   async updatePassword(
@@ -107,13 +98,7 @@ export class UserService {
       throw err;
     }
 
-    return {
-      id: updatedUser.id,
-      login: updatedUser.login,
-      version: updatedUser.version,
-      createdAt: parseInt(updatedUser.createdAt),
-      updatedAt: parseInt(updatedUser.updatedAt),
-    };
+    return this.mapUserEntityToUser(updatedUser);
   }
 
   async delete(userId: string): Promise<void> {
@@ -122,5 +107,15 @@ export class UserService {
     if (result.affected === 0) {
       throw new NotFoundError(`User with id ${userId} wasn't found`);
     }
+  }
+
+  private mapUserEntityToUser(entity: UserEntity): Omit<User, 'password'> {
+    return {
+      id: entity.id,
+      login: entity.login,
+      version: entity.version,
+      createdAt: parseInt(entity.createdAt),
+      updatedAt: parseInt(entity.updatedAt),
+    };
   }
 }
