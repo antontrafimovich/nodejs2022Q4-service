@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot(dataSourceOptions),
+    AuthModule,
     TrackModule,
     UserModule,
     ArtistModule,

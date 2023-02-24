@@ -7,6 +7,7 @@ import { LocalStrategy } from './auth-strategies/local.strategy';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
+import { UserExistsGuard } from './user-exists.guard';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { LocalAuthGuard } from './local-auth.guard';
       },
     }),
   ],
-  providers: [AuthService, LocalStrategy, LocalAuthGuard],
+  providers: [AuthService, LocalStrategy, LocalAuthGuard, UserExistsGuard],
   controllers: [AuthController],
 })
 export class AuthModule {}
