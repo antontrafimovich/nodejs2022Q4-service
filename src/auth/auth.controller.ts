@@ -4,18 +4,20 @@ import { Req } from '@nestjs/common/decorators';
 import { User } from '../model';
 import { AuthLoginResult } from './auth.model';
 import { AuthService } from './auth.service';
-import { SignupDTO } from './dto/signup.dto';
+import { AuthDTO } from './dto';
 import { LocalAuthGuard } from './local-auth.guard';
+import { UserExistsGuard } from './user-exists.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @UseGuards(UserExistsGuard)
   @Post('signup')
-  async signup(@Body() singupDTO: SignupDTO): Promise<Pick<User, 'id'>> {
-    return {
-      id: 'asd',
-    };
+  async signup(
+    @Body() { login, password }: AuthDTO,
+  ): Promise<Pick<User, 'id'>> {
+    return this.authService.signup(login, password);
   }
 
   @UseGuards(LocalAuthGuard)
