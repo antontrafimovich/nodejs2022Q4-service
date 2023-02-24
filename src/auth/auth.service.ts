@@ -32,4 +32,11 @@ export class AuthService {
       accessToken: await this.jwtService.signAsync(payload),
     };
   }
+
+  async signup(
+    login: string,
+    password: string,
+  ): Promise<Omit<User, 'password'>> {
+    return this.userService.create({ login, password });
+  }
 }
