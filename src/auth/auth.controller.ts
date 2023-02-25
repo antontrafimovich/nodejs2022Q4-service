@@ -6,13 +6,14 @@ import { AuthLoginResult } from './auth.model';
 import { AuthService } from './auth.service';
 import { AuthDTO } from './dto';
 import { LocalAuthGuard } from './local-auth.guard';
-import { UserExistsGuard } from './user-exists.guard';
+import { Public } from './utils';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @UseGuards(UserExistsGuard)
+  @Public()
+  // @UseGuards(UserExistsGuard)
   @Post('signup')
   async signup(
     @Body() { login, password }: AuthDTO,
@@ -20,6 +21,7 @@ export class AuthController {
     return this.authService.signup(login, password);
   }
 
+  @Public()
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Req() req): Promise<AuthLoginResult> {
