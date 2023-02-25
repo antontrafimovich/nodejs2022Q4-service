@@ -76,7 +76,10 @@ export class UserService {
     let user: UserEntity;
 
     try {
-      user = await this.userRepository.findOneOrFail({ where: { id: userId } });
+      user = await this.userRepository.findOneByOrFail({
+        id: userId,
+        password: oldPassword,
+      });
     } catch (err) {
       throw new NotFoundError(`User with id ${userId} doesn't exist`);
     }
