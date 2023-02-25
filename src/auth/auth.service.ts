@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 import { User } from '../model';
+import { UserEntity } from '../user/entity/user.entity';
 import { UserService } from '../user/user.service';
+import { compareWithHash } from '../utils';
 import { AuthLoginResult } from './auth.model';
 
 @Injectable()
@@ -12,14 +14,16 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  validateUser(
-    login: string,
-    password: string,
-  ): Promise<Omit<User, 'password'>> {
-    return this.userService.getOneBy({
+  async validateUser(login: string, password: string): Promise<UserEntity> {
+    const result = await this.userService.getOneBy({
       login,
-      password,
     });
+
+    if (result === null || !compareWithHash(password, result.password)) {
+      return null;
+    }
+
+    return result;
   }
 
   async login(user: User): Promise<AuthLoginResult> {
@@ -33,10 +37,7 @@ export class AuthService {
     };
   }
 
-  async signup(
-    login: string,
-    password: string,
-  ): Promise<Omit<User, 'password'>> {
+  signup(login: string, password: string): Promise<Omit<User, 'password'>> {
     return this.userService.create({ login, password });
   }
 }

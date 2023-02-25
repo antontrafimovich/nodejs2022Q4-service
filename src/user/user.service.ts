@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from '../model';
-import { ForbiddenError, NotFoundError } from '../utils';
+import { compareWithHash, ForbiddenError, hash, NotFoundError } from '../utils';
 import { UpdatePasswordDTO } from './dto';
 import { UserEntity } from './entity/user.entity';
 
@@ -24,14 +24,14 @@ export class UserService {
     }
   }
 
-  async getOneBy(params: Partial<UserEntity>): Promise<Omit<User, 'password'>> {
+  async getOneBy(params: Partial<UserEntity>): Promise<UserEntity> {
     const result = await this.userRepository.findOneBy(params);
 
     if (result === null) {
       return null;
     }
 
-    return this.mapUserEntityToUser(result);
+    return result;
   }
 
   async getById(id: string): Promise<Omit<User, 'password'>> {
@@ -52,10 +52,12 @@ export class UserService {
 
     let user: UserEntity;
 
+    const hashedPassword = await hash(password);
+
     try {
       const newUser = this.userRepository.create({
         login,
-        password,
+        password: hashedPassword,
         createdAt: createdAt.toString(),
         updatedAt: createdAt.toString(),
         version: 1,
@@ -78,22 +80,25 @@ export class UserService {
     try {
       user = await this.userRepository.findOneByOrFail({
         id: userId,
-        password: oldPassword,
       });
     } catch (err) {
-      throw new NotFoundError(`User with id ${userId} doesn't exist`);
+      throw new NotFoundError(
+        `User with id ${userId} and password combination doesn't exist`,
+      );
     }
 
-    if (oldPassword !== user.password) {
+    if (!compareWithHash(oldPassword, user.password)) {
       throw new ForbiddenError(`Provided old password is wrong`);
     }
 
     let updatedUser: UserEntity;
 
+    const hashedNewPassword = await hash(newPassword);
+
     try {
       updatedUser = await this.userRepository.save({
         ...user,
-        password: newPassword,
+        password: hashedNewPassword,
         version: user.version + 1,
         updatedAt: new Date().getTime().toString(),
       });
