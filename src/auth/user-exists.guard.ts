@@ -9,13 +9,18 @@ export class UserExistsGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthDTO>();
-    console.log(request);
 
     try {
-      await this.authService.validateUser(request.login, request.password);
-      return false;
-    } catch {}
+      const result = await this.authService.validateUser(
+        request.login,
+        request.password,
+      );
 
-    return true;
+      if (result) {
+        return false;
+      }
+
+      return true;
+    } catch {}
   }
 }
