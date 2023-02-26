@@ -13,5 +13,6 @@ import { LoggingSerivce } from './logging.service';
       useClass: LoggingInterceptor,
     },
   ],
+  exports: [LoggingSerivce],
 })
 export class LoggerModule {}
