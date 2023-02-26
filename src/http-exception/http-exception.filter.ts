@@ -1,18 +1,20 @@
 import {
   ArgumentsHost,
   Catch,
+  ExceptionFilter,
+  HttpAdapterHost,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { BaseExceptionFilter } from '@nestjs/core';
 
 import { LoggingSerivce } from '../logger/logging.service';
 
 @Catch()
-export class HttpExceptionFilter extends BaseExceptionFilter {
-  constructor(private loggingService: LoggingSerivce) {
-    super();
-  }
+export class HttpExceptionFilter implements ExceptionFilter {
+  constructor(
+    private loggingService: LoggingSerivce,
+    private httpAdapterHost: HttpAdapterHost,
+  ) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -23,12 +25,20 @@ export class HttpExceptionFilter extends BaseExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    const { httpAdapter } = this.httpAdapterHost;
+
+    const responseBody = {
+      statusCode: httpStatus,
+      timestamp: new Date().toISOString(),
+      path: httpAdapter.getRequestUrl(ctx.getRequest()),
+    };
+
     this.loggingService.logRequestData(request);
 
     this.loggingService.error(
       `Exception with code ${httpStatus} has been thrown.`,
     );
 
-    super.catch(exception, host);
+    httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);
   }
 }
