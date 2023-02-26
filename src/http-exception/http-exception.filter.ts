@@ -6,32 +6,29 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 
 import { LoggingSerivce } from '../logger/logging.service';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  constructor(
-    private loggingService: LoggingSerivce,
-    private httpAdapterHost: HttpAdapterHost,
-  ) {}
+  constructor(private loggingService: LoggingSerivce) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const request = ctx.getRequest<Request>();
+    const response = ctx.getResponse<Response>();
 
     const httpStatus =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const { httpAdapter } = this.httpAdapterHost;
-
-    const responseBody = {
-      statusCode: httpStatus,
-      timestamp: new Date().toISOString(),
-      path: httpAdapter.getRequestUrl(ctx.getRequest()),
-    };
+    // const responseBody = {
+    //   statusCode: httpStatus,
+    //   timestamp: new Date().toISOString(),
+    //   path: request.url,
+    // };
 
     this.loggingService.logRequestData(request);
 
@@ -39,6 +36,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
       `Exception with code ${httpStatus} has been thrown.`,
     );
 
-    httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);
+    response.status(httpStatus).json({
+      statusCode: httpStatus,
+      timestamp: new Date().toISOString(),
+      path: request.url,
+    });
   }
 }

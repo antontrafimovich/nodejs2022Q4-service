@@ -1,8 +1,17 @@
 import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { appendFile } from 'fs/promises';
+
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 @Injectable()
 export class LoggingSerivce extends ConsoleLogger {
-  public logRequestData(req: any) {
+  private fileName = 'log/all.log';
+
+  private logLevels = ['error', 'warn', 'log', 'verbose', 'debug'];
+
+  public async logRequestData(req: any) {
     const { url, query, body } = req;
 
     const urlString = `url: ${url}`;
@@ -28,5 +37,47 @@ export class LoggingSerivce extends ConsoleLogger {
       .join('; ');
 
     this.log(resultString);
+
+    await appendFile(this.fileName, resultString);
+  }
+
+  error(message: any, stack?: string, context?: string) {
+    if (+process.env.LOGGING_LEVEL < 1) {
+      return;
+    }
+
+    super.log(message, stack, context);
+  }
+
+  warn(message: any, stack?: string, context?: string) {
+    if (+process.env.LOGGING_LEVEL < 2) {
+      return;
+    }
+
+    super.log(message, stack, context);
+  }
+
+  log(message: any, stack?: string, context?: string) {
+    if (+process.env.LOGGING_LEVEL < 3) {
+      return;
+    }
+
+    super.log(message, stack, context);
+  }
+
+  verbose(message: any, stack?: string, context?: string) {
+    if (+process.env.LOGGING_LEVEL < 4) {
+      return;
+    }
+
+    super.log(message, stack, context);
+  }
+
+  debug(message: any, stack?: string, context?: string) {
+    if (+process.env.LOGGING_LEVEL < 5) {
+      return;
+    }
+
+    super.log(message, stack, context);
   }
 }
