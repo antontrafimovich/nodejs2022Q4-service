@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { AuthDTO } from './dto';
 import { LocalAuthGuard } from './local-auth.guard';
 import { Public } from './utils';
+import { ValidLoginParams } from './valid-login-params.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -22,7 +23,7 @@ export class AuthController {
   }
 
   @Public()
-  @UseGuards(LocalAuthGuard)
+  @UseGuards(ValidLoginParams, LocalAuthGuard)
   @Post('login')
   async login(@Req() req): Promise<AuthLoginResult> {
     return this.authService.login(req.user);
