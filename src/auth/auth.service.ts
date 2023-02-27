@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import * as dotenv from 'dotenv';
 
 import { User } from '../model';
 import { UserEntity } from '../user/entity/user.entity';
 import { UserService } from '../user/user.service';
 import { compareWithHash, ForbiddenError } from '../utils';
 import { AuthLoginResult } from './auth.model';
+
+dotenv.config();
 
 @Injectable()
 export class AuthService {
@@ -35,8 +38,12 @@ export class AuthService {
     };
 
     return {
-      accessToken: await this.jwtService.signAsync(payload),
+      accessToken: await this.jwtService.signAsync(payload, {
+        secret: process.env.ACCESS_TOKEN_SECRET || 'ACCESS_TOKEN_SECRET',
+        expiresIn: '15m',
+      }),
       refreshToken: await this.jwtService.signAsync(payload, {
+        secret: process.env.REFRESH_TOKEN_SECRET || 'REFRESH_TOKEN_SECRET',
         expiresIn: '20m',
       }),
     };
@@ -56,10 +63,17 @@ export class AuthService {
     }) as Record<string, any>;
 
     return {
-      accessToken: await this.jwtService.signAsync({ userId, login }),
+      accessToken: await this.jwtService.signAsync(
+        { userId, login },
+        {
+          secret: process.env.ACCESS_TOKEN_SECRET || 'ACCESS_TOKEN_SECRET',
+          expiresIn: '15m',
+        },
+      ),
       refreshToken: await this.jwtService.signAsync(
         { userId, login },
         {
+          secret: process.env.REFRESH_TOKEN_SECRET || 'REFRESH_TOKEN_SECRET',
           expiresIn: '20m',
         },
       ),
