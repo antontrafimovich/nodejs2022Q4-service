@@ -1,7 +1,6 @@
-import { ConsoleLogger, Injectable, StreamableFile } from '@nestjs/common';
-import { appendFile } from 'fs/promises';
-
+import { ConsoleLogger, Injectable } from '@nestjs/common';
 import * as dotenv from 'dotenv';
+import { appendFile } from 'fs/promises';
 
 dotenv.config();
 
@@ -13,11 +12,6 @@ export class LoggingSerivce extends ConsoleLogger {
   private logLevel = +process.env.LOGGING_LEVEL;
 
   private logLevels = ['error', 'warn', 'log', 'verbose', 'debug'];
-
-  constructor() {
-    super();
-    process.stdout.on('data', (data) => console.log('Antont', data));
-  }
 
   public async logRequestData(req: any) {
     const { url, query, body } = req;
