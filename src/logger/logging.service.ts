@@ -15,7 +15,7 @@ export class LoggingSerivce extends ConsoleLogger {
   private logLevels = ['error', 'warn', 'log', 'verbose', 'debug'];
 
   public async logRequestData(req: any) {
-    const { url, query, body } = req;
+    const { url, query, body, method } = req;
 
     const urlString = `url: ${url}`;
 
@@ -39,7 +39,17 @@ export class LoggingSerivce extends ConsoleLogger {
       .filter((v) => v !== null)
       .join('; ');
 
-    this.log(resultString);
+    await this.log(`${method} ${resultString}`);
+  }
+
+  public async logResponseData(res: any, data: Record<string, unknown>) {
+    const { statusCode } = res;
+
+    await this.log(
+      `Response with status code ${statusCode} and body ${JSON.stringify(
+        data,
+      )}`,
+    );
   }
 
   async error(message: any, ...optionalParams: [...any, string?]) {
@@ -134,8 +144,6 @@ export class LoggingSerivce extends ConsoleLogger {
   }
 
   private async writeToFile(fileName: string, message: string) {
-    console.log(fileName);
-
     try {
       await appendFile(fileName, message);
     } catch (err) {

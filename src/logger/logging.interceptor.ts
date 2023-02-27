@@ -20,7 +20,11 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap({
-        next: (data) => console.log(data),
+        next: async (data) => {
+          const response = context.switchToHttp().getResponse();
+
+          await this.loggingService.logResponseData(response, data);
+        },
       }),
     );
   }

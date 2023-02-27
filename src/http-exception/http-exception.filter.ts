@@ -25,14 +25,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     this.loggingService.logRequestData(request);
 
+    const body =
+      exception instanceof HttpException
+        ? exception
+        : {
+            statusCode: httpStatus,
+            timestamp: new Date().toISOString(),
+            path: request.url,
+          };
+
     this.loggingService.error(
-      `Exception with code ${httpStatus} has been thrown.`,
+      `Exception with code ${httpStatus} and description ${JSON.stringify(
+        body,
+      )} has been thrown.`,
     );
 
-    response.status(httpStatus).json({
-      statusCode: httpStatus,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-    });
+    response.status(httpStatus).json(body);
   }
 }
