@@ -19,7 +19,9 @@ export class AuthService {
       login,
     });
 
-    if (result === null || !compareWithHash(password, result.password)) {
+    const arePasswordsEqual = await compareWithHash(password, result.password);
+
+    if (result === null || !arePasswordsEqual) {
       return null;
     }
 
