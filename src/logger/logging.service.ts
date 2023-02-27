@@ -1,5 +1,6 @@
 import { ConsoleLogger, Injectable } from '@nestjs/common';
 import * as dotenv from 'dotenv';
+import { appendFileSync } from 'fs';
 import { appendFile } from 'fs/promises';
 
 dotenv.config();
@@ -50,6 +51,17 @@ export class LoggingSerivce extends ConsoleLogger {
 
     await this.writeLogToFile(message, 'error');
     await this.writeErrorToFile(message);
+  }
+
+  errorSync(message: any, ...optionalParams: [...any, string?]) {
+    if (this.logLevel < 0) {
+      return;
+    }
+
+    super.error(message, ...optionalParams);
+
+    this.writeLogToFileSync(message, 'error');
+    this.writeErrorToFileSync(message);
   }
 
   async warn(message: any, ...optionalParams: [...any, string?]) {
@@ -107,7 +119,31 @@ export class LoggingSerivce extends ConsoleLogger {
     );
   }
 
-  private writeToFile(message: string, fileName: string) {
-    return appendFile(fileName, message);
+  private async writeLogToFileSync(message: string, logLevel: string) {
+    this.writeToFileSync(
+      this.commonLogsFileName,
+      this.processMessageToLog(message, logLevel),
+    );
+  }
+
+  private async writeErrorToFileSync(message: string) {
+    this.writeToFileSync(
+      this.errorLogsFileName,
+      this.processMessageToLog(message, 'error'),
+    );
+  }
+
+  private async writeToFile(fileName: string, message: string) {
+    console.log(fileName);
+
+    try {
+      await appendFile(fileName, message);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  private async writeToFileSync(fileName: string, message: string) {
+    appendFileSync(fileName, message);
   }
 }

@@ -10,12 +10,12 @@ dotenv.config();
 const logger = new LoggingSerivce();
 
 process.on('uncaughtException', (err) => {
-  logger.error(`Uncaught exception - ${err}`);
+  logger.errorSync(`Uncaught exception - ${err}`);
   process.exit(0);
 });
 
 process.on('unhandledRejection', (err) => {
-  logger.error(`Unhandled rejection - ${err}`);
+  logger.errorSync(`Unhandled rejection - ${err}`);
   process.exit(0);
 });
 
