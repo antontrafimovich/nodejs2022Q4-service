@@ -87,7 +87,9 @@ export class UserService {
       );
     }
 
-    if (!compareWithHash(oldPassword, user.password)) {
+    const arePasswordsEqual = await compareWithHash(oldPassword, user.password);
+
+    if (!arePasswordsEqual) {
       throw new ForbiddenError(`Provided old password is wrong`);
     }
 
