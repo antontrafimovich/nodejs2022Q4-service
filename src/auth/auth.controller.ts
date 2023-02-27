@@ -36,7 +36,6 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
-  @Public()
   @Post('refresh')
   async refresh(
     @Body() { refreshToken }: RefreshDTO,
