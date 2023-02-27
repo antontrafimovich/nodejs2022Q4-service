@@ -1,13 +1,20 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { Req } from '@nestjs/common/decorators';
+import {
+  Body,
+  Controller,
+  Post,
+  UseGuards,
+  Req,
+  ForbiddenException,
+} from '@nestjs/common';
 
 import { User } from '../model';
+import { ForbiddenError } from '../utils';
 import { AuthLoginResult } from './auth.model';
 import { AuthService } from './auth.service';
-import { AuthDTO } from './dto';
+import { AuthDTO, RefreshDTO } from './dto';
 import { LocalAuthGuard } from './local-auth.guard';
 import { Public } from './utils';
-import { ValidLoginParams } from './valid-login-params.guard';
+import { ValidLoginParamsGuard } from './valid-login-params.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -23,9 +30,25 @@ export class AuthController {
   }
 
   @Public()
-  @UseGuards(ValidLoginParams, LocalAuthGuard)
+  @UseGuards(ValidLoginParamsGuard, LocalAuthGuard)
   @Post('login')
   async login(@Req() req): Promise<AuthLoginResult> {
     return this.authService.login(req.user);
+  }
+
+  @Public()
+  @Post('refresh')
+  async refresh(
+    @Body() { refreshToken }: RefreshDTO,
+  ): Promise<AuthLoginResult> {
+    try {
+      return await this.authService.refresh(refreshToken);
+    } catch (err) {
+      if (err instanceof ForbiddenError) {
+        throw new ForbiddenException(err.message);
+      }
+
+      throw err;
+    }
   }
 }
