@@ -52,6 +52,7 @@ export class AuthService {
   async refresh(refreshToken: string): Promise<AuthLoginResult> {
     const isValid = await this.jwtService.verifyAsync(refreshToken, {
       ignoreExpiration: false,
+      secret: process.env.REFRESH_TOKEN_SECRET || 'REFRESH_TOKEN_SECRET',
     });
 
     if (!isValid) {
