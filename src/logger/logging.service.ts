@@ -1,4 +1,4 @@
-import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { ConsoleLogger, Injectable, StreamableFile } from '@nestjs/common';
 import { appendFile } from 'fs/promises';
 
 import * as dotenv from 'dotenv';
@@ -7,9 +7,17 @@ dotenv.config();
 
 @Injectable()
 export class LoggingSerivce extends ConsoleLogger {
-  private fileName = 'log/all.log';
+  private commonLogsFileName = './all.log';
+  private errorLogsFileName = './error.log';
+
+  private logLevel = +process.env.LOGGING_LEVEL;
 
   private logLevels = ['error', 'warn', 'log', 'verbose', 'debug'];
+
+  constructor() {
+    super();
+    process.stdout.on('data', (data) => console.log('Antont', data));
+  }
 
   public async logRequestData(req: any) {
     const { url, query, body } = req;
@@ -37,47 +45,75 @@ export class LoggingSerivce extends ConsoleLogger {
       .join('; ');
 
     this.log(resultString);
-
-    await appendFile(this.fileName, resultString);
   }
 
-  error(message: any, stack?: string, context?: string) {
-    if (+process.env.LOGGING_LEVEL < 1) {
+  async error(message: any, ...optionalParams: [...any, string?]) {
+    if (this.logLevel < 0) {
       return;
     }
 
-    super.log(message, stack, context);
+    super.error(message, ...optionalParams);
+
+    await this.writeLogToFile(message, 'error');
+    await this.writeErrorToFile(message);
   }
 
-  warn(message: any, stack?: string, context?: string) {
-    if (+process.env.LOGGING_LEVEL < 2) {
+  async warn(message: any, ...optionalParams: [...any, string?]) {
+    if (this.logLevel < 1) {
       return;
     }
 
-    super.log(message, stack, context);
+    super.warn(message, ...optionalParams);
+
+    await this.writeLogToFile(message, 'warn');
   }
 
-  log(message: any, stack?: string, context?: string) {
-    if (+process.env.LOGGING_LEVEL < 3) {
+  async log(message: any, ...optionalParams: [...any, string?]) {
+    if (this.logLevel < 2) {
       return;
     }
 
-    super.log(message, stack, context);
+    super.log(message, ...optionalParams);
+    await this.writeLogToFile(message, 'log');
   }
 
-  verbose(message: any, stack?: string, context?: string) {
-    if (+process.env.LOGGING_LEVEL < 4) {
+  async verbose(message: any, ...optionalParams: [...any, string?]) {
+    if (this.logLevel < 3) {
       return;
     }
 
-    super.log(message, stack, context);
+    super.verbose(message, ...optionalParams);
+    await this.writeLogToFile(message, 'verbose');
   }
 
-  debug(message: any, stack?: string, context?: string) {
-    if (+process.env.LOGGING_LEVEL < 5) {
+  async debug(message: any, ...optionalParams: [...any, string?]) {
+    if (this.logLevel < 4) {
       return;
     }
 
-    super.log(message, stack, context);
+    super.debug(message, ...optionalParams);
+    await this.writeLogToFile(message, 'debug');
+  }
+
+  private processMessageToLog(message: string, logLevel: string) {
+    return `${new Date().toISOString()} [${logLevel.toUpperCase()}] ${message}\n`;
+  }
+
+  private async writeLogToFile(message: string, logLevel: string) {
+    return this.writeToFile(
+      this.commonLogsFileName,
+      this.processMessageToLog(message, logLevel),
+    );
+  }
+
+  private async writeErrorToFile(message: string) {
+    return this.writeToFile(
+      this.errorLogsFileName,
+      this.processMessageToLog(message, 'error'),
+    );
+  }
+
+  private writeToFile(message: string, fileName: string) {
+    return appendFile(fileName, message);
   }
 }
