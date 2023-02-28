@@ -29,7 +29,7 @@ docker-compose build
 docker-compose up
 ```
 
-## Running application
+## Running application tests
 
 To run tests use next command
 
