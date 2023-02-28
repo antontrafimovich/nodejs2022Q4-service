@@ -27,3 +27,11 @@ Third, run this commands:
 docker-compose build
 docker-compose up
 ```
+
+## Running application tests
+
+To run tests use next command
+
+```
+npm run test:auth -- --runInBand
+```
