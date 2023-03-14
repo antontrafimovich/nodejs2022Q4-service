@@ -1,85 +1,65 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
-import { Album, Artist, Track } from '../model';
-import { AlbumRepository } from '../repository/album.repository';
-import { ArtistRepository } from '../repository/artist.repository';
-import { FavoritesRepository } from '../repository/favorites.repository';
-import { TrackRepository } from '../repository/track.repository';
+import { Artist } from '../model';
+import { NotFoundError } from '../utils';
+import { ArtistEntity } from './entity/artist.entity';
 
 @Injectable()
 export class ArtistService {
   constructor(
-    private _artistRepo: ArtistRepository,
-    private _trackRepo: TrackRepository,
-    private _albumRepo: AlbumRepository,
-    private _favoritesRepo: FavoritesRepository,
+    @InjectRepository(ArtistEntity)
+    private artistRepository: Repository<ArtistEntity>,
   ) {}
 
   getAll(): Promise<Artist[]> {
-    return this._artistRepo.getAll();
+    return this.artistRepository.find();
   }
 
-  getById(id: string): Promise<Artist> {
-    return this._artistRepo.getById(id);
+  async getById(id: string): Promise<Artist> {
+    try {
+      return await this.artistRepository.findOneOrFail({ where: { id } });
+    } catch (err) {
+      throw new NotFoundError(`Artist with id ${id} doesn't exist.`);
+    }
   }
 
-  create(artist: Omit<Artist, 'id'>): Promise<Artist> {
-    return this._artistRepo.create(artist);
+  async create(artist: Omit<Artist, 'id'>): Promise<Artist> {
+    try {
+      const newArtist = this.artistRepository.create(artist);
+
+      return await this.artistRepository.save(newArtist);
+    } catch (err) {
+      throw err;
+    }
   }
 
-  update(artistId: string, artist: Omit<Artist, 'id'>): Promise<Artist> {
-    return this._artistRepo.update(artistId, artist);
+  async update(artistId: string, artist: Omit<Artist, 'id'>): Promise<Artist> {
+    let existingArtist: Artist;
+
+    try {
+      existingArtist = await this.getById(artistId);
+    } catch (err) {
+      throw err;
+    }
+
+    try {
+      return await this.artistRepository.save({
+        ...existingArtist,
+        ...artist,
+        id: artistId,
+      });
+    } catch (err) {
+      throw err;
+    }
   }
 
   async delete(artistId: string): Promise<void> {
-    try {
-      await this._artistRepo.delete(artistId);
-    } catch (err) {
-      throw err;
-    }
+    const deleteArtistResult = await this.artistRepository.delete(artistId);
 
-    try {
-      await this._favoritesRepo.delete({ type: 'artist', entityId: artistId });
-    } catch {}
-
-    let artistTracks: Track[];
-
-    try {
-      artistTracks = await this._trackRepo.getMany(
-        (track) => track.artistId === artistId,
-      );
-    } catch (err) {
-      throw err;
-    }
-
-    try {
-      const updateTracksPromises = artistTracks.map((track) =>
-        this._trackRepo.update(track.id, { ...track, artistId: null }),
-      );
-
-      await Promise.all(updateTracksPromises);
-    } catch (err) {
-      throw err;
-    }
-
-    let artistAlbums: Album[];
-
-    try {
-      artistAlbums = await this._albumRepo.getMany(
-        (album) => album.artistId === artistId,
-      );
-    } catch (err) {
-      throw err;
-    }
-
-    try {
-      const updateAlbumsPromises = artistAlbums.map((album) =>
-        this._albumRepo.update(album.id, { ...album, artistId: null }),
-      );
-
-      await Promise.all(updateAlbumsPromises);
-    } catch (err) {
-      throw err;
+    if (deleteArtistResult.affected === 0) {
+      throw new NotFoundError(`Album with id ${artistId} wasn't found`);
     }
   }
 }

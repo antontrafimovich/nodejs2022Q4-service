@@ -1,89 +1,130 @@
 import { Injectable } from '@nestjs/common';
-import { ArtistRepository } from 'src/repository/artist.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
-import { Album, Track } from '../model';
-import { AlbumRepository } from '../repository/album.repository';
-import { FavoritesRepository } from '../repository/favorites.repository';
-import { TrackRepository } from '../repository/track.repository';
-import { BadInputError } from '../utils';
+import { ArtistEntity } from '../artist/entity/artist.entity';
+import { Album } from '../model';
+import { BadInputError, NotFoundError } from '../utils';
+import { AlbumEntity } from './entity/album.entity';
 
 @Injectable()
 export class AlbumService {
   constructor(
-    private _albumRepo: AlbumRepository,
-    private _trackRepo: TrackRepository,
-    private _artistRepo: ArtistRepository,
-    private _favoritesRepo: FavoritesRepository,
+    @InjectRepository(ArtistEntity)
+    private artistRepository: Repository<ArtistEntity>,
+    @InjectRepository(AlbumEntity)
+    private albumRepository: Repository<AlbumEntity>,
   ) {}
 
-  getAll(): Promise<Album[]> {
-    return this._albumRepo.getAll();
+  async getAll(): Promise<Album[]> {
+    const results = await this.albumRepository.find({
+      relations: {
+        artist: true,
+      },
+    });
+
+    return results.map(this.mapAlbumEntityToAlbum);
   }
 
-  getById(id: string): Promise<Album> {
-    return this._albumRepo.getById(id);
+  async getById(id: string): Promise<Album> {
+    try {
+      const album = await this.albumRepository.findOneOrFail({
+        where: { id },
+        relations: {
+          artist: true,
+        },
+      });
+
+      return this.mapAlbumEntityToAlbum(album);
+    } catch (err) {
+      throw new NotFoundError(`Album with id ${id} doesn't exist.`);
+    }
   }
 
   async create(album: Omit<Album, 'id'>): Promise<Album> {
     const { artistId } = album;
 
+    let artist: ArtistEntity;
+
     try {
-      if (artistId !== null) {
-        await this._artistRepo.getById(artistId);
-      }
+      artist = await this.getArtistById(artistId);
     } catch {
       throw new BadInputError(
         `Can't create album, because artist with id ${artistId} doesn't exist`,
       );
     }
 
-    return await this._albumRepo.create(album);
+    try {
+      const newAlbum = this.albumRepository.create({
+        name: album.name,
+        year: album.year,
+        artist,
+      });
+
+      const result = await this.albumRepository.save(newAlbum);
+
+      return this.mapAlbumEntityToAlbum(result);
+    } catch (err) {
+      throw err;
+    }
   }
 
   async update(albumId: string, album: Omit<Album, 'id'>): Promise<Album> {
     const { artistId } = album;
 
+    let artist: ArtistEntity;
     try {
-      if (artistId !== null) {
-        await this._artistRepo.getById(artistId);
-      }
+      artist = await this.artistRepository.findOneByOrFail({ id: artistId });
     } catch {
       throw new BadInputError(
         `Can't update album, because artist with id ${artistId} doesn't exist`,
       );
     }
 
-    return this._albumRepo.update(albumId, album);
+    try {
+      await this.getById(albumId);
+    } catch (err) {
+      throw err;
+    }
+
+    try {
+      const result = await this.albumRepository.save({
+        id: albumId,
+        name: album.name,
+        year: album.year,
+        artist,
+      });
+
+      return this.mapAlbumEntityToAlbum(result);
+    } catch (err) {
+      throw err;
+    }
   }
 
   async delete(albumId: string): Promise<void> {
-    try {
-      await this._albumRepo.delete(albumId);
-    } catch (err) {
-      throw err;
+    const deleteAlbumResult = await this.albumRepository.delete({
+      id: albumId,
+    });
+
+    if (deleteAlbumResult.affected === 0) {
+      throw new NotFoundError(`Album with id ${albumId} wasn't found`);
+    }
+  }
+
+  private async getArtistById(id: string): Promise<ArtistEntity> {
+    if (id === null) {
+      return null;
     }
 
-    try {
-      await this._favoritesRepo.delete({ type: 'album', entityId: albumId });
-    } catch {}
+    return await this.artistRepository.findOneByOrFail({ id });
+  }
 
-    let albumTracks: Track[];
-    try {
-      albumTracks = await this._trackRepo.getMany(
-        (track) => track.albumId === albumId,
-      );
-    } catch (err) {
-      throw err;
-    }
-
-    try {
-      const updateTracksPromises = albumTracks.map((track) =>
-        this._trackRepo.update(track.id, { ...track, albumId: null }),
-      );
-
-      await Promise.all(updateTracksPromises);
-    } catch (err) {
-      throw err;
-    }
+  private mapAlbumEntityToAlbum(entity: AlbumEntity): Album {
+    return {
+      id: entity.id, // uuid v4
+      name: entity.name,
+      year: entity.year,
+      artistId: entity.artist?.id ?? null,
+    };
   }
 }

@@ -1,15 +1,16 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AlbumModule } from './album/album.module';
 import { ArtistModule } from './artist/artist.module';
-import { DBModule } from './db/db.module';
 import { FavoritesModule } from './favorites/favorites.module';
+import { dataSourceOptions } from './ormconfig';
 import { TrackModule } from './track/track.module';
 import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
-    DBModule.forRoot({ type: 'inMemory' }),
+    TypeOrmModule.forRoot(dataSourceOptions),
     TrackModule,
     UserModule,
     ArtistModule,
