@@ -23,7 +23,16 @@ First, you need to create `.env` file. Take a `.env.example` file as a reference
 Second, make sure that docker daemon is up and running
 
 Third, run this commands:
+
 ```
 docker-compose build
 docker-compose up
+```
+
+## Running application tests
+
+To run tests use next command
+
+```
+npm run test:auth -- --runInBand
 ```

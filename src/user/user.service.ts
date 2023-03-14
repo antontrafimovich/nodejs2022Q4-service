@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from '../model';
-import { ForbiddenError, NotFoundError } from '../utils';
+import { compareWithHash, ForbiddenError, hash, NotFoundError } from '../utils';
 import { UpdatePasswordDTO } from './dto';
 import { UserEntity } from './entity/user.entity';
 
@@ -18,30 +18,27 @@ export class UserService {
     try {
       const result = await this.userRepository.find();
 
-      return result.map((user) => {
-        return {
-          ...user,
-          createdAt: parseInt(user.createdAt),
-          updatedAt: parseInt(user.updatedAt),
-          password: undefined,
-        };
-      });
+      return result.map(this.mapUserEntityToUser);
     } catch (err) {
       throw err;
     }
+  }
+
+  async getOneBy(params: Partial<UserEntity>): Promise<UserEntity> {
+    const result = await this.userRepository.findOneBy(params);
+
+    if (result === null) {
+      return null;
+    }
+
+    return result;
   }
 
   async getById(id: string): Promise<Omit<User, 'password'>> {
     try {
       const user = await this.userRepository.findOneOrFail({ where: { id } });
 
-      return {
-        id,
-        login: user.login,
-        version: user.version,
-        createdAt: parseInt(user.createdAt),
-        updatedAt: parseInt(user.updatedAt),
-      };
+      return this.mapUserEntityToUser(user);
     } catch (err) {
       throw new NotFoundError(`User with id ${id} doesn't exist`);
     }
@@ -55,10 +52,12 @@ export class UserService {
 
     let user: UserEntity;
 
+    const hashedPassword = await hash(password);
+
     try {
       const newUser = this.userRepository.create({
         login,
-        password,
+        password: hashedPassword,
         createdAt: createdAt.toString(),
         updatedAt: createdAt.toString(),
         version: 1,
@@ -69,13 +68,7 @@ export class UserService {
       throw err;
     }
 
-    return {
-      id: user.id,
-      login: user.login,
-      version: user.version,
-      createdAt: parseInt(user.createdAt),
-      updatedAt: parseInt(user.updatedAt),
-    };
+    return this.mapUserEntityToUser(user);
   }
 
   async updatePassword(
@@ -85,21 +78,29 @@ export class UserService {
     let user: UserEntity;
 
     try {
-      user = await this.userRepository.findOneOrFail({ where: { id: userId } });
+      user = await this.userRepository.findOneByOrFail({
+        id: userId,
+      });
     } catch (err) {
-      throw new NotFoundError(`User with id ${userId} doesn't exist`);
+      throw new NotFoundError(
+        `User with id ${userId} and password combination doesn't exist`,
+      );
     }
 
-    if (oldPassword !== user.password) {
+    const arePasswordsEqual = await compareWithHash(oldPassword, user.password);
+
+    if (!arePasswordsEqual) {
       throw new ForbiddenError(`Provided old password is wrong`);
     }
 
     let updatedUser: UserEntity;
 
+    const hashedNewPassword = await hash(newPassword);
+
     try {
       updatedUser = await this.userRepository.save({
         ...user,
-        password: newPassword,
+        password: hashedNewPassword,
         version: user.version + 1,
         updatedAt: new Date().getTime().toString(),
       });
@@ -107,13 +108,7 @@ export class UserService {
       throw err;
     }
 
-    return {
-      id: updatedUser.id,
-      login: updatedUser.login,
-      version: updatedUser.version,
-      createdAt: parseInt(updatedUser.createdAt),
-      updatedAt: parseInt(updatedUser.updatedAt),
-    };
+    return this.mapUserEntityToUser(updatedUser);
   }
 
   async delete(userId: string): Promise<void> {
@@ -122,5 +117,15 @@ export class UserService {
     if (result.affected === 0) {
       throw new NotFoundError(`User with id ${userId} wasn't found`);
     }
+  }
+
+  private mapUserEntityToUser(entity: UserEntity): Omit<User, 'password'> {
+    return {
+      id: entity.id,
+      login: entity.login,
+      version: entity.version,
+      createdAt: parseInt(entity.createdAt),
+      updatedAt: parseInt(entity.updatedAt),
+    };
   }
 }
