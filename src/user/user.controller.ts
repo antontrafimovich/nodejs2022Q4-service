@@ -19,11 +19,11 @@ import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
-  constructor(private _userService: UserService) {}
+  constructor(private userService: UserService) {}
 
   @Get()
   getAll(): Promise<Omit<User, 'password'>[]> {
-    return this._userService.getAll();
+    return this.userService.getAll();
   }
 
   @Get(':id')
@@ -31,7 +31,7 @@ export class UserController {
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<Omit<User, 'password'>> {
     try {
-      return await this._userService.getById(id);
+      return await this.userService.getById(id);
     } catch (err) {
       if (err instanceof NotFoundError) {
         throw new HttpException(err.message, HttpStatus.NOT_FOUND);
@@ -45,7 +45,7 @@ export class UserController {
   create(
     @Body() createUserDTO: CreateUserDTO,
   ): Promise<Omit<User, 'password'>> {
-    return this._userService.create(createUserDTO);
+    return this.userService.create(createUserDTO);
   }
 
   @Put(':id')
@@ -54,7 +54,7 @@ export class UserController {
     @Body() updatePasswordDTO: UpdatePasswordDTO,
   ): Promise<Omit<User, 'password'>> {
     try {
-      return await this._userService.updatePassword(id, updatePasswordDTO);
+      return await this.userService.updatePassword(id, updatePasswordDTO);
     } catch (err) {
       if (err instanceof ForbiddenError) {
         throw new HttpException(err.message, HttpStatus.FORBIDDEN);
@@ -72,7 +72,7 @@ export class UserController {
   @HttpCode(204)
   async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
     try {
-      return await this._userService.delete(id);
+      return await this.userService.delete(id);
     } catch (err) {
       if (err instanceof NotFoundError) {
         throw new HttpException(err.message, HttpStatus.NOT_FOUND);

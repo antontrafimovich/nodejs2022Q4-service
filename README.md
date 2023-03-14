@@ -35,4 +35,5 @@ To run tests use next command
 
 ```
 npm run test:auth -- --runInBand
+
 ```
